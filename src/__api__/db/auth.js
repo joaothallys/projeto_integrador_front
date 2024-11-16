@@ -1,78 +1,34 @@
-import Mock from "../mock";
+import axios from "axios";
 
-// const JWT_SECRET = 'jwt_secret_key';
-// const JWT_VALIDITY = '7 days';
+const API_URL = "https://omniapi-beta-polidigital.svc-us3.zcloud.ws/v3/auth";
 
-const userList = [
-  {
-    id: 1,
-    role: "SA",
-    name: "Jason Alexander",
-    username: "jason_alexander",
-    email: "jason@ui-lib.com",
-    avatar: "/assets/images/face-6.jpg",
-    age: 25
-  }
-];
+const authService = {
+  login: async (email, password, navigate) => {
+    try {
+      // Configurando axios para enviar cookies e credenciais
+      const instance = axios.create({
+        withCredentials: true, // Necessário para enviar cookies
+      });
 
-// FOLLOWING CODES ARE MOCK SERVER IMPLEMENTATION
-// YOU NEED TO BUILD YOUR OWN SERVER
-// IF YOU NEED HELP ABOUT SERVER SIDE IMPLEMENTATION
-// CONTACT US AT support@ui-lib.com
+      // Fazendo a solicitação de login
+      const loginResponse = await instance.post(`${API_URL}/login`, {
+        email,
+        password,
+      });
 
-Mock.onPost("/api/auth/login").reply(async (config) => {
-  try {
-    const { email } = JSON.parse(config.data);
-    const user = userList.find((u) => u.email === email);
-
-    if (!user) return [400, { message: "Invalid email or password" }];
-
-    const payload = { user: userList[0] };
-    return [200, payload];
-  } catch (err) {
-    console.error(err);
-    return [500, { message: "Internal server error" }];
-  }
-});
-
-Mock.onPost("/api/auth/register").reply((config) => {
-  try {
-    const { email, username } = JSON.parse(config.data);
-    const user = userList.find((u) => u.email === email);
-
-    if (user) return [400, { message: "User already exists!" }];
-
-    const newUser = {
-      id: 2,
-      role: "GUEST",
-      name: "Unknown",
-      age: 25,
-      email: email,
-      username: username,
-      avatar: "/assets/images/face-6.jpg"
-    };
-
-    userList.push(newUser);
-
-    const payload = { user: { ...newUser } };
-    return [200, payload];
-  } catch (err) {
-    console.error(err);
-    return [500, { message: "Internal server error" }];
-  }
-});
-
-Mock.onGet("/api/auth/profile").reply((config) => {
-  try {
-    const { Authorization } = config.headers;
-    if (!Authorization) {
-      return [401, { message: "Invalid Authorization token" }];
+      // Verificando o status da resposta
+      if (loginResponse.status === 200 || loginResponse.status === 204) {
+        // Redirecionando o usuário para o dashboard
+        navigate("/dashboard/default");
+        return { authorized: true };
+      } else {
+        throw new Error("Credenciais inválidas.");
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
+  },
+};
 
-    const payload = { user: userList[0] };
-    return [200, payload];
-  } catch (err) {
-    console.error(err);
-    return [500, { message: "Internal server error" }];
-  }
-});
+export default authService;

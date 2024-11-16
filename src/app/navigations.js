@@ -1,24 +1,13 @@
 const navigations = [
   { name: "Dashboard", path: "/dashboard/default", icon: "dashboard" },
-  { label: "PAGES", type: "label" },
+  { label: "Ferramentas", type: "label" },
   {
-    name: "Session/Auth",
-    icon: "security",
-    children: [
-      { name: "Sign in", iconText: "SI", path: "/session/signin" },
-      { name: "Sign up", iconText: "SU", path: "/session/signup" },
-      { name: "Forgot Password", iconText: "FP", path: "/session/forgot-password" },
-      { name: "Error", iconText: "404", path: "/session/404" }
-    ]
-  },
-  { label: "Components", type: "label" },
-  {
-    name: "Components",
+    name: "Ferramentas",
     icon: "favorite",
     badge: { value: "30+", color: "secondary" },
     children: [
-      { name: "Auto Complete", path: "/material/autocomplete", iconText: "A" },
-      { name: "Buttons", path: "/material/buttons", iconText: "B" },
+      { name: "Cadastro", path: "/material/autocomplete", iconText: "A" },
+      { name: "Gerenciamento", path: "/material/buttons", iconText: "B" },
       { name: "Checkbox", path: "/material/checkbox", iconText: "C" },
       { name: "Dialog", path: "/material/dialog", iconText: "D" },
       { name: "Expansion Panel", path: "/material/expansion-panel", iconText: "E" },

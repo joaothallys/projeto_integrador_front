@@ -10,15 +10,16 @@ export default defineConfig({
     VitePWA({
       injectRegister: "auto",
       registerType: "autoUpdate",
-      workbox: { clientsClaim: true, skipWaiting: true }
-    })
+      workbox: { clientsClaim: true, skipWaiting: true },
+    }),
   ],
   build: {
-    chunkSizeWarningLimit: 2000
+    chunkSizeWarningLimit: 2000,
   },
   resolve: {
     alias: {
-      app: path.resolve(__dirname, "src/app")
-    }
-  }
+      app: path.resolve(__dirname, "src/app"),
+      __api__: path.resolve(__dirname, "src/__api__"), // Alias para o diretório __api__
+    },
+  },
 });
