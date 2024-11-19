@@ -1,67 +1,61 @@
-import React, { useState } from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import styled from "@mui/material/styles/styled";
 import { Breadcrumb, SimpleCard } from "app/components";
+import userService from "__api__/db/user";
 
-// STYLED COMPONENTS
+// Styled Components
 const AppButtonRoot = styled("div")(({ theme }) => ({
   margin: "30px",
-  "& .input": { display: "none" },
-  "& .button": { margin: theme.spacing(1) },
-  [theme.breakpoints.down("sm")]: { margin: "16px" },
   "& .breadcrumb": {
     marginBottom: "30px",
     [theme.breakpoints.down("sm")]: { marginBottom: "16px" },
   },
 }));
 
-const StyledButton = styled(Button)(({ theme }) => ({
-  margin: theme.spacing(1),
-}));
-
-const mockData = [
-  {
-    customer_id: 1,
-    token: null,
-    created_at: "2024-11-15T21:07:28.529090",
-    deleted_at: null,
-    id: 105,
-    type_id: 1,
-    updated_at: "2024-11-15T21:07:28.529090",
-    type_name: "Admin",
-  },
-  {
-    customer_id: 2,
-    token: "abc123",
-    created_at: "2024-11-14T20:00:00.000000",
-    deleted_at: null,
-    id: 106,
-    type_id: 1,
-    updated_at: "2024-11-14T20:00:00.000000",
-    type_name: "User",
-  },
-];
-
 export default function AppButton() {
-  const [data, setData] = useState(mockData);
+  const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [deactivationDate, setDeactivationDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+
+  useEffect(() => {
+    fetchData(currentPage);
+  }, [currentPage]);
+
+  const fetchData = async (page) => {
+    try {
+      const response = await userService.getCustomers(page);
+      console.log("Dados retornados:", response); // Log para depuração
+      if (Array.isArray(response?.data)) {
+        setData(response.data);
+        setLastPage(response.last_page || 1);
+      } else {
+        console.error("Formato de dados inesperado:", response);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+    }
+  };
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -84,9 +78,16 @@ export default function AppButton() {
     setOpenDialog(true);
   };
 
-  const filteredData = data.filter((user) =>
-    user.customer_id.toString().includes(search)
-  );
+  const copyToClipboard = (token) => {
+    navigator.clipboard.writeText(token);
+    alert("Token copiado para a área de transferência!");
+  };
+
+  const filteredData = Array.isArray(data)
+  ? data.filter((user) =>
+      user.customer_id.toString().includes(search)
+    )
+  : [];
 
   return (
     <AppButtonRoot>
@@ -112,23 +113,38 @@ export default function AppButton() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={{ paddingLeft: "24px" }}>ID</TableCell>
+                <TableCell>ID</TableCell>
                 <TableCell>Customer ID</TableCell>
                 <TableCell>Token</TableCell>
                 <TableCell>Criado em</TableCell>
                 <TableCell>Última Atualização</TableCell>
                 <TableCell>Tipo</TableCell>
-                <TableCell>Ativar/Desativar</TableCell>
+                <TableCell>Ação</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredData.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell style={{ paddingLeft: "24px" }}>{user.id}</TableCell>
+                  <TableCell>{user.id}</TableCell>
                   <TableCell>{user.customer_id}</TableCell>
-                  <TableCell>{user.token || "N/A"}</TableCell>
-                  <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(user.updated_at).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {user.token
+                      ? `${user.token.slice(0, 10)}...`
+                      : "N/A"}
+                    {user.token && (
+                      <Button
+                        onClick={() => copyToClipboard(user.token)}
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        style={{ marginLeft: 8 }}
+                      >
+                        Copiar
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(user.updated_at).toLocaleString()}</TableCell>
                   <TableCell>{user.type_name}</TableCell>
                   <TableCell>
                     <Button
@@ -144,14 +160,32 @@ export default function AppButton() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Paginação */}
+        <Box display="flex" justifyContent="center" mt={2}>
+          <Button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          >
+            Anterior
+          </Button>
+          <Box mx={2}>{`Página ${currentPage} de ${lastPage}`}</Box>
+          <Button
+            disabled={currentPage === lastPage}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
+          >
+            Próxima
+          </Button>
+        </Box>
       </SimpleCard>
 
       {/* Dialog de confirmação */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-      >
-        <DialogTitle>{data.find((user) => user.id === selectedUserId)?.deleted_at ? "Ativar Usuário" : "Desativar Usuário"}</DialogTitle>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>
+          {data.find((user) => user.id === selectedUserId)?.deleted_at
+            ? "Ativar Usuário"
+            : "Desativar Usuário"}
+        </DialogTitle>
         <DialogContent>
           {data.find((user) => user.id === selectedUserId)?.deleted_at ? (
             <DialogContentText>

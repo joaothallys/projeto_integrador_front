@@ -1,9 +1,10 @@
-import { createContext, useReducer, useEffect } from "react";
+import React, { createContext, useReducer, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "__api__/db/auth";
 
-const initialAuthState = {
-  user: null,
+const AuthContext = createContext();
+
+const initialState = {
   isAuthenticated: false,
   isInitialized: false,
 };
@@ -13,55 +14,39 @@ const reducer = (state, action) => {
     case "INITIALIZE":
       return {
         ...state,
+        isAuthenticated: action.payload.isAuthenticated,
         isInitialized: true,
-        isAuthenticated: !!action.payload.user,
-        user: action.payload.user,
       };
     case "LOGIN":
       return {
         ...state,
         isAuthenticated: true,
-        user: action.payload.user,
       };
     case "LOGOUT":
       return {
         ...state,
         isAuthenticated: false,
-        user: null,
       };
     default:
       return state;
   }
 };
 
-const AuthContext = createContext(initialAuthState);
-
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialAuthState);
+  const [state, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
 
+  // Inicializa o estado de autenticação
   useEffect(() => {
-    const initialize = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const valid = await authService.validateToken(token);
-          if (valid) {
-            const user = JSON.parse(localStorage.getItem("user"));
-            dispatch({
-              type: "INITIALIZE",
-              payload: { user },
-            });
-          } else {
-            throw new Error("Token inválido");
-          }
-        } catch {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          dispatch({ type: "INITIALIZE", payload: { user: null } });
-        }
+    const initialize = () => {
+      const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+      console.log("Inicializando autenticação. Estado armazenado:", isAuthenticated);
+
+      if (isAuthenticated) {
+        dispatch({ type: "INITIALIZE", payload: { isAuthenticated: true } });
       } else {
-        dispatch({ type: "INITIALIZE", payload: { user: null } });
+        dispatch({ type: "INITIALIZE", payload: { isAuthenticated: false } });
       }
     };
 
@@ -69,23 +54,39 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const response = await authService.login(email, password);
-    localStorage.setItem("token", response.token);
-    localStorage.setItem("user", JSON.stringify(response.user));
-    dispatch({ type: "LOGIN", payload: { user: response.user } });
-    navigate("/dashboard/default");
+    try {
+      console.log("Tentando login...");
+      await authService.login(email, password);
+
+      // Salvar estado no localStorage
+      localStorage.setItem("isAuthenticated", "true");
+
+      dispatch({ type: "LOGIN" });
+      navigate("/dashboard/default");
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    dispatch({ type: "LOGOUT" });
-    navigate("/session/signin");
+  const logout = async () => {
+    try {
+      console.log("Fazendo logout...");
+      await authService.logout();
+
+      // Remover estado do localStorage
+      localStorage.removeItem("isAuthenticated");
+
+      dispatch({ type: "LOGOUT" });
+      navigate("/session/signin");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout }}>
-      {children}
+      {state.isInitialized ? children : <div>Carregando...</div>}
     </AuthContext.Provider>
   );
 };

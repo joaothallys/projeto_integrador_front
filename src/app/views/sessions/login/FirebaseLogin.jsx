@@ -78,13 +78,11 @@ const validationSchema = Yup.object().shape({
 
 export default function FirebaseLogin() {
   const theme = useTheme();
-  const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { login } = useAuth(); // Importa o login do contexto
+  const { login } = useAuth();
 
   const handleFormSubmit = async (values, { setErrors }) => {
     try {
-      // Chama o login do AuthContext
       await login(values.email, values.password);
       enqueueSnackbar("Login realizado com sucesso!", { variant: "success" });
     } catch (error) {

@@ -10,7 +10,7 @@ const AppTable = Loadable(lazy(() => import("./tables/AppTable")));
 const AppSwitch = Loadable(lazy(() => import("./switch/AppSwitch")));
 const AppSlider = Loadable(lazy(() => import("./slider/AppSlider")));
 const AppDialog = Loadable(lazy(() => import("./dialog/AppDialog")));
-const AppButton = Loadable(lazy(() => import("./buttons/AppButton")));
+const AppButton = Loadable(lazy(() => import("./gerenciamento/manage")));
 const AppCheckbox = Loadable(lazy(() => import("./checkbox/AppCheckbox")));
 const AppSnackbar = Loadable(lazy(() => import("./snackbar/AppSnackbar")));
 const AppAutoComplete = Loadable(lazy(() => import("./auto-complete/AppAutoComplete")));
