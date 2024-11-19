@@ -1,102 +1,90 @@
-import { createContext, useEffect, useReducer } from "react";
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signOut,
-  signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from "firebase/auth";
-// FIREBASE CONFIGURATION
-import { firebaseConfig } from "app/config";
-// GLOBAL CUSTOM COMPONENT
-import Loading from "app/components/MatxLoading";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { createContext, useReducer, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import authService from "__api__/db/auth";
 
 const initialAuthState = {
   user: null,
+  isAuthenticated: false,
   isInitialized: false,
-  isAuthenticated: false
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "FB_AUTH_STATE_CHANGED": {
-      const { isAuthenticated, user } = action.payload;
-      return { ...state, isAuthenticated, isInitialized: true, user };
-    }
-
-    default: {
+    case "INITIALIZE":
+      return {
+        ...state,
+        isInitialized: true,
+        isAuthenticated: !!action.payload.user,
+        user: action.payload.user,
+      };
+    case "LOGIN":
+      return {
+        ...state,
+        isAuthenticated: true,
+        user: action.payload.user,
+      };
+    case "LOGOUT":
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: null,
+      };
+    default:
       return state;
-    }
   }
 };
 
-const AuthContext = createContext({
-  ...initialAuthState,
-  method: "FIREBASE"
-});
+const AuthContext = createContext(initialAuthState);
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialAuthState);
-
-  const signInWithEmail = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const signInWithGoogle = () => {
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  };
-
-  const createUserWithEmail = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const logout = () => signOut(auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        dispatch({
-          type: "FB_AUTH_STATE_CHANGED",
-          payload: {
-            isAuthenticated: true,
-            user: {
-              id: user.uid,
-              email: user.email,
-              avatar: user.photoURL,
-              name: user.displayName || user.email
-            }
+    const initialize = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const valid = await authService.validateToken(token);
+          if (valid) {
+            const user = JSON.parse(localStorage.getItem("user"));
+            dispatch({
+              type: "INITIALIZE",
+              payload: { user },
+            });
+          } else {
+            throw new Error("Token inválido");
           }
-        });
+        } catch {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          dispatch({ type: "INITIALIZE", payload: { user: null } });
+        }
       } else {
-        dispatch({
-          type: "FB_AUTH_STATE_CHANGED",
-          payload: { isAuthenticated: false, user: null }
-        });
+        dispatch({ type: "INITIALIZE", payload: { user: null } });
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [dispatch]);
+    initialize();
+  }, []);
 
-  if (!state.isInitialized) return <Loading />;
+  const login = async (email, password) => {
+    const response = await authService.login(email, password);
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
+    dispatch({ type: "LOGIN", payload: { user: response.user } });
+    navigate("/dashboard/default");
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    dispatch({ type: "LOGOUT" });
+    navigate("/session/signin");
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...state,
-        logout,
-        signInWithGoogle,
-        method: "FIREBASE",
-        signInWithEmail,
-        createUserWithEmail
-      }}>
+    <AuthContext.Provider value={{ ...state, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

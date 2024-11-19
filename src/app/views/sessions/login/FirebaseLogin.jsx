@@ -1,12 +1,12 @@
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import authService from "__api__/db/auth";
+import useAuth from "app/hooks/useAuth";
 
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { styled, useTheme } from "@mui/material/styles";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -18,7 +18,7 @@ const Logo = styled("div")({
   gap: 10,
   display: "flex",
   alignItems: "center",
-  "& span": { fontSize: 26, lineHeight: 1.3, fontWeight: 800 }
+  "& span": { fontSize: 26, lineHeight: 1.3, fontWeight: 800 },
 });
 
 const FirebaseRoot = styled("div")(({ theme }) => ({
@@ -37,12 +37,12 @@ const FirebaseRoot = styled("div")(({ theme }) => ({
     backgroundSize: "cover",
     background: "#161c37 url(/assets/images/bg-3.png) no-repeat",
     [theme.breakpoints.down("sm")]: { minWidth: 200 },
-    "& img": { width: 32, height: 32 }
+    "& img": { width: 32, height: 32 },
   },
   "& .mainTitle": {
     fontSize: 18,
     lineHeight: 1.3,
-    marginBottom: 24
+    marginBottom: 24,
   },
   "& .item": {
     position: "relative",
@@ -56,40 +56,40 @@ const FirebaseRoot = styled("div")(({ theme }) => ({
       content: '""',
       borderRadius: 4,
       position: "absolute",
-      backgroundColor: theme.palette.error.main
-    }
-  }
+      backgroundColor: theme.palette.error.main,
+    },
+  },
 }));
 
-// initial login credentials
+// Initial login credentials
 const initialValues = {
   email: "",
   password: "",
-  remember: true
+  remember: true,
 };
 
-// form field validation schema
+// Form field validation schema
 const validationSchema = Yup.object().shape({
   password: Yup.string()
-    .min(6, "Password must be 6 character length")
+    .min(6, "Password must be 6 characters long")
     .required("Password is required!"),
-  email: Yup.string().email("Invalid Email address").required("Email is required!")
+  email: Yup.string().email("Invalid Email address").required("Email is required!"),
 });
 
 export default function FirebaseLogin() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const { enqueueSnackbar } = useSnackbar();
+  const { login } = useAuth(); // Importa o login do contexto
 
-  const handleFormSubmit = async (values) => {
+  const handleFormSubmit = async (values, { setErrors }) => {
     try {
-      // Fazendo login usando o authService
-      await authService.login(values.email, values.password, navigate);
-      enqueueSnackbar("Logged In Successfully", { variant: "success" });
+      // Chama o login do AuthContext
+      await login(values.email, values.password);
+      enqueueSnackbar("Login realizado com sucesso!", { variant: "success" });
     } catch (error) {
-      console.error("Login Error: ", error);
-      enqueueSnackbar(error.message, { variant: "error" });
+      enqueueSnackbar("Erro ao fazer login: " + error.message, { variant: "error" });
+      setErrors({ email: "Credenciais inválidas. Verifique e tente novamente." });
     }
   };
 
@@ -97,7 +97,8 @@ export default function FirebaseLogin() {
     <FirebaseRoot>
       <Card className="card">
         <Grid container>
-          <Grid size={{ md: 6, xs: 12 }}>
+          {/* Seção Esquerda */}
+          <Grid item md={6} xs={12}>
             <div className="cardLeft">
               <Logo>
                 <MatxLogo /> <span>Disparador</span>
@@ -119,12 +120,14 @@ export default function FirebaseLogin() {
             </div>
           </Grid>
 
-          <Grid size={{ md: 6, xs: 12 }}>
+          {/* Seção Direita */}
+          <Grid item md={6} xs={12}>
             <Box p={4}>
               <Formik
                 onSubmit={handleFormSubmit}
                 initialValues={initialValues}
-                validationSchema={validationSchema}>
+                validationSchema={validationSchema}
+              >
                 {({
                   values,
                   errors,
@@ -132,9 +135,10 @@ export default function FirebaseLogin() {
                   isSubmitting,
                   handleChange,
                   handleBlur,
-                  handleSubmit
+                  handleSubmit,
                 }) => (
                   <form onSubmit={handleSubmit}>
+                    {/* Campo de Email */}
                     <TextField
                       fullWidth
                       size="small"
@@ -150,6 +154,7 @@ export default function FirebaseLogin() {
                       sx={{ mb: 3 }}
                     />
 
+                    {/* Campo de Senha */}
                     <TextField
                       fullWidth
                       size="small"
@@ -165,31 +170,37 @@ export default function FirebaseLogin() {
                       sx={{ mb: 1.5 }}
                     />
 
+                    {/* Link para Esqueceu a Senha */}
                     <Box display="flex" justifyContent="space-between">
                       <NavLink
                         to="/session/forgot-password"
-                        style={{ color: theme.palette.primary.main }}>
+                        style={{ color: theme.palette.primary.main }}
+                      >
                         Esqueceu sua senha?
                       </NavLink>
                     </Box>
 
+                    {/* Botão de Login */}
                     <LoadingButton
                       type="submit"
                       color="primary"
                       loading={isSubmitting}
                       variant="contained"
-                      sx={{ my: 2 }}>
+                      sx={{ my: 2 }}
+                    >
                       Login
                     </LoadingButton>
 
+                    {/* Link para Suporte */}
                     <Paragraph>
                       Não tem uma conta?
                       <NavLink
                         to="/session/signup"
                         style={{
                           marginInlineStart: 5,
-                          color: theme.palette.primary.main
-                        }}>
+                          color: theme.palette.primary.main,
+                        }}
+                      >
                         Suporte
                       </NavLink>
                     </Paragraph>

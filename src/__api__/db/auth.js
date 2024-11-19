@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL = "https://omniapi-beta-polidigital.svc-us3.zcloud.ws/v3/auth";
 
 const authService = {
-  login: async (email, password, navigate) => {
+  login: async (email, password) => {
     try {
       // Configurando axios para enviar cookies e credenciais
       const instance = axios.create({
@@ -18,15 +18,16 @@ const authService = {
 
       // Verificando o status da resposta
       if (loginResponse.status === 200 || loginResponse.status === 204) {
-        // Redirecionando o usuário para o dashboard
-        navigate("/dashboard/default");
-        return { authorized: true };
+        return {
+          authorized: true,
+          user: loginResponse.data, // Dados do usuário retornados pela API, se aplicável
+        };
       } else {
         throw new Error("Credenciais inválidas.");
       }
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.error("Erro no serviço de autenticação:", error);
+      throw new Error(error.response?.data?.message || "Erro ao autenticar.");
     }
   },
 };
