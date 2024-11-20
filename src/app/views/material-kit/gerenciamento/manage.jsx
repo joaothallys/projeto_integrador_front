@@ -15,6 +15,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import styled from "@mui/material/styles/styled";
 import { Breadcrumb, SimpleCard } from "app/components";
@@ -37,23 +40,40 @@ export default function AppButton() {
   const [deactivationDate, setDeactivationDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Fetch Data on Page Change
   useEffect(() => {
     fetchData(currentPage);
   }, [currentPage]);
 
+  // Fetch Users
   const fetchData = async (page) => {
+    setLoading(true);
     try {
       const response = await userService.getCustomers(page);
-      console.log("Dados retornados:", response); // Log para depuração
-      if (Array.isArray(response?.data)) {
+      if (response?.data && Array.isArray(response.data)) {
         setData(response.data);
         setLastPage(response.last_page || 1);
       } else {
-        console.error("Formato de dados inesperado:", response);
+        setData([]);
       }
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
+      setData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,16 +81,47 @@ export default function AppButton() {
     setSearch(e.target.value);
   };
 
-  const handleToggleActive = () => {
-    setData((prevData) =>
-      prevData.map((user) =>
-        user.id === selectedUserId
-          ? { ...user, deleted_at: user.deleted_at ? null : new Date(deactivationDate).toISOString() }
-          : user
-      )
-    );
-    setOpenDialog(false);
-    setDeactivationDate("");
+  const handleToggleActive = async () => {
+    setLoading(true);
+    try {
+      const selectedUser = data.find((user) => user.customer_id === selectedUserId);
+
+      if (!selectedUser) {
+        throw new Error("Cliente não encontrado.");
+      }
+
+      if (selectedUser.deleted_at) {
+        await userService.reactivateClient(selectedUser.customer_id);
+        setSnackbar({
+          open: true,
+          message: "Usuário ativado com sucesso.",
+          severity: "success",
+        });
+      } else {
+        if (!deactivationDate) {
+          throw new Error("Data de desativação é necessária para desativar um cliente.");
+        }
+        await userService.deactivateClient(selectedUser.customer_id, deactivationDate);
+        setSnackbar({
+          open: true,
+          message: "Usuário desativado com sucesso.",
+          severity: "success",
+        });
+      }
+
+      fetchData(currentPage);
+    } catch (error) {
+      console.error("Erro ao alterar status do cliente:", error);
+      setSnackbar({
+        open: true,
+        message: "Erro ao alterar status do cliente.",
+        severity: "error",
+      });
+    } finally {
+      setOpenDialog(false);
+      setDeactivationDate("");
+      setLoading(false);
+    }
   };
 
   const openActivationDialog = (id) => {
@@ -80,25 +131,31 @@ export default function AppButton() {
 
   const copyToClipboard = (token) => {
     navigator.clipboard.writeText(token);
-    alert("Token copiado para a área de transferência!");
+    setSnackbar({
+      open: true,
+      message: "Token copiado para a área de transferência.",
+      severity: "info",
+    });
   };
 
   const filteredData = Array.isArray(data)
-  ? data.filter((user) =>
-      user.customer_id.toString().includes(search)
+    ? data.filter((user) =>
+      user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
     )
-  : [];
+    : [];
 
   return (
     <AppButtonRoot>
       <Box className="breadcrumb">
         <Breadcrumb
-          routeSegments={[{ name: "Ferramentas", path: "/material" }, { name: "Gerenciamento" }]}
+          routeSegments={[
+            { name: "Ferramentas", path: "/material" },
+            { name: "Gerenciamento" },
+          ]}
         />
       </Box>
 
       <SimpleCard title="Gerenciamento de Usuários">
-        {/* Barra de pesquisa */}
         <Box mb={2}>
           <TextField
             label="Pesquisar por Customer ID"
@@ -109,59 +166,53 @@ export default function AppButton() {
           />
         </Box>
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Customer ID</TableCell>
-                <TableCell>Token</TableCell>
-                <TableCell>Criado em</TableCell>
-                <TableCell>Última Atualização</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Ação</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredData.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.customer_id}</TableCell>
-                  <TableCell>
-                    {user.token
-                      ? `${user.token.slice(0, 10)}...`
-                      : "N/A"}
-                    {user.token && (
-                      <Button
-                        onClick={() => copyToClipboard(user.token)}
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        style={{ marginLeft: 8 }}
-                      >
-                        Copiar
-                      </Button>
-                    )}
-                  </TableCell>
-                  <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(user.updated_at).toLocaleString()}</TableCell>
-                  <TableCell>{user.type_name}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color={user.deleted_at ? "primary" : "secondary"}
-                      onClick={() => openActivationDialog(user.id)}
-                    >
-                      {user.deleted_at ? "Ativar" : "Desativar"}
-                    </Button>
-                  </TableCell>
+        {loading ? (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Customer ID</TableCell>
+                  <TableCell>Token</TableCell>
+                  <TableCell>Criado em</TableCell>
+                  <TableCell>Última Atualização</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Ação</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {filteredData.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.customer_id}</TableCell>
+                    <TableCell>
+                      {user.token ? `${user.token.slice(0, 10)}...` : "vazio"}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.updated_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{user.type_name}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color={user.deleted_at ? "primary" : "secondary"}
+                        onClick={() => openActivationDialog(user.customer_id)}
+                      >
+                        {user.deleted_at ? "Ativar" : "Desativar"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
-        {/* Paginação */}
         <Box display="flex" justifyContent="center" mt={2}>
           <Button
             disabled={currentPage === 1}
@@ -172,22 +223,23 @@ export default function AppButton() {
           <Box mx={2}>{`Página ${currentPage} de ${lastPage}`}</Box>
           <Button
             disabled={currentPage === lastPage}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, lastPage))
+            }
           >
             Próxima
           </Button>
         </Box>
       </SimpleCard>
 
-      {/* Dialog de confirmação */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>
-          {data.find((user) => user.id === selectedUserId)?.deleted_at
+          {data.find((user) => user.customer_id === selectedUserId)?.deleted_at
             ? "Ativar Usuário"
             : "Desativar Usuário"}
         </DialogTitle>
         <DialogContent>
-          {data.find((user) => user.id === selectedUserId)?.deleted_at ? (
+          {data.find((user) => user.customer_id === selectedUserId)?.deleted_at ? (
             <DialogContentText>
               Tem certeza que deseja ativar este usuário?
             </DialogContentText>
@@ -214,6 +266,17 @@ export default function AppButton() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }} // Altere "horizontal" para "right"
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </AppButtonRoot>
   );
 }

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
@@ -27,9 +27,9 @@ import { NotificationBar } from "app/components/NotificationBar";
 import { themeShadows } from "app/components/MatxTheme/themeColors";
 import { topBarHeight } from "app/utils/constant";
 
-// STYLED COMPONENTS
+// Styled Components
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
-  color: theme.palette.text.primary
+  color: theme.palette.text.primary,
 }));
 
 const TopbarRoot = styled("div")({
@@ -37,7 +37,7 @@ const TopbarRoot = styled("div")({
   zIndex: 96,
   height: topBarHeight,
   boxShadow: themeShadows[8],
-  transition: "all 0.3s ease"
+  transition: "all 0.3s ease",
 });
 
 const TopbarContainer = styled("div")(({ theme }) => ({
@@ -50,7 +50,7 @@ const TopbarContainer = styled("div")(({ theme }) => ({
   justifyContent: "space-between",
   background: theme.palette.primary.main,
   [theme.breakpoints.down("sm")]: { paddingLeft: 16, paddingRight: 16 },
-  [theme.breakpoints.down("xs")]: { paddingLeft: 14, paddingRight: 16 }
+  [theme.breakpoints.down("xs")]: { paddingLeft: 14, paddingRight: 16 },
 }));
 
 const UserMenu = styled("div")({
@@ -59,7 +59,7 @@ const UserMenu = styled("div")({
   borderRadius: 24,
   cursor: "pointer",
   alignItems: "center",
-  "& span": { margin: "0 8px" }
+  "& span": { margin: "0 8px" },
 });
 
 const StyledItem = styled(MenuItem)(({ theme }) => ({
@@ -70,14 +70,14 @@ const StyledItem = styled(MenuItem)(({ theme }) => ({
     width: "100%",
     display: "flex",
     alignItems: "center",
-    textDecoration: "none"
+    textDecoration: "none",
   },
-  "& span": { marginRight: "10px", color: theme.palette.text.primary }
+  "& span": { marginRight: "10px", color: theme.palette.text.primary },
 }));
 
 const IconBox = styled("div")(({ theme }) => ({
   display: "inherit",
-  [theme.breakpoints.down("md")]: { display: "none !important" }
+  [theme.breakpoints.down("md")]: { display: "none !important" },
 }));
 
 const Layout1Topbar = () => {
@@ -91,13 +91,13 @@ const Layout1Topbar = () => {
   };
 
   const handleSidebarToggle = () => {
-    let { layout1Settings } = settings;
-    let mode;
-    if (isMdScreen) {
-      mode = layout1Settings.leftSidebar.mode === "close" ? "mobile" : "close";
-    } else {
-      mode = layout1Settings.leftSidebar.mode === "full" ? "close" : "full";
-    }
+    const { layout1Settings } = settings;
+    const mode =
+      isMdScreen && layout1Settings.leftSidebar.mode === "close"
+        ? "mobile"
+        : layout1Settings.leftSidebar.mode === "full"
+          ? "close"
+          : "full";
     updateSidebarMode({ mode });
   };
 
@@ -137,12 +137,12 @@ const Layout1Topbar = () => {
             menuButton={
               <UserMenu>
                 <Span>
-                  Hi <strong>{user?.name || "Usuário Adm"}</strong>
+                  Olá <strong>{user?.name || "Usuário Adm"}</strong>
                 </Span>
-
                 <Avatar src={user?.avatar} sx={{ cursor: "pointer" }} />
               </UserMenu>
-            }>
+            }
+          >
             <StyledItem>
               <Link to="/">
                 <Home />
@@ -150,17 +150,17 @@ const Layout1Topbar = () => {
               </Link>
             </StyledItem>
 
-            <StyledItem>
+            {/* <StyledItem>
               <Link to="/page-layouts/user-profile">
                 <Person />
                 <Span sx={{ marginInlineStart: 1 }}>Profile</Span>
               </Link>
-            </StyledItem>
+            </StyledItem> */}
 
-            <StyledItem>
+            {/* <StyledItem>
               <Settings />
               <Span sx={{ marginInlineStart: 1 }}>Settings</Span>
-            </StyledItem>
+            </StyledItem> */}
 
             <StyledItem onClick={logout}>
               <PowerSettingsNew />

@@ -40,18 +40,6 @@ const ecommerceDB = {
       description: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.`
     },
     {
-      id: "333sa680bdf4976dfgga21rt4",
-      imgUrl: "/assets/images/products/headphone-2.jpg",
-      price: 987.0,
-      totalUnit: 100,
-      title: "Bit Bass Headphone",
-      category: "audio",
-      brand: "Sony",
-      rating: 5,
-      freeShipping: true,
-      description: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.`
-    },
-    {
       id: nanoid(),
       imgUrl: "/assets/images/products/headphone-3.jpg",
       price: 870.0,
@@ -182,18 +170,6 @@ const ecommerceDB = {
     { rate: 3, product: 765 },
     { rate: 2, product: 32 },
     { rate: 1, product: 64 }
-  ],
-
-  cart: [
-    {
-      uid: "PPFDrVGsojfZoDxeYLMdIAWxSzd2",
-      list: [
-        { productId: "323sa680b32497dsfdsgga21rt47", amount: 1 },
-        { productId: "323sa680b324976dfgga21rt47", amount: 1 },
-        { productId: "323sa680bdf4976dfgga21rt4", amount: 1 },
-        { productId: "333sa680bdf4976dfgga21rt4", amount: 1 }
-      ]
-    }
   ],
 
   userList: [
