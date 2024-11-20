@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Icon from "@mui/material/Icon";
 import Radio from "@mui/material/Radio";
@@ -129,11 +128,6 @@ const SimpleForm = () => {
                   control={<Radio color="secondary" />}
                 />
               </RadioGroup>
-
-              <FormControlLabel
-                control={<Checkbox />}
-                label="I have read and agree to the terms of service."
-              />
             </Stack>
           </Grid>
         </Grid>

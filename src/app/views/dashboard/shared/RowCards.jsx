@@ -5,7 +5,6 @@ import Fab from "@mui/material/Fab";
 import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid2";
 import Avatar from "@mui/material/Avatar";
-import Checkbox from "@mui/material/Checkbox";
 import IconButton from "@mui/material/IconButton";
 import { styled } from "@mui/material/styles";
 import MoreVert from "@mui/icons-material/MoreVert";
@@ -47,23 +46,6 @@ export default function RowCards() {
     <Fragment key={id}>
       <Card sx={{ py: 1, px: 2 }} className="project-card">
         <Grid container alignItems="center">
-          <Grid size={{ md: 5, xs: 7 }}>
-            <Box display="flex" alignItems="center">
-              <Checkbox />
-
-              {id % 2 === 1 ? (
-                <StyledFabStar size="small">
-                  <StarOutline />
-                </StyledFabStar>
-              ) : (
-                <StyledFab size="small">
-                  <DateRange />
-                </StyledFab>
-              )}
-
-              <ProjectName>Project {id}</ProjectName>
-            </Box>
-          </Grid>
 
           <Grid size={{ md: 3, xs: 4 }}>
             <Box color="text.secondary">{format(new Date().getTime(), "MM/dd/yyyy hh:mma")}</Box>
