@@ -1,6 +1,5 @@
 import { Box, styled, Stack } from "@mui/material";
 import { Breadcrumb, SimpleCard } from "app/components";
-import SimpleSwitch from "./SijmpleSwitch";
 import LabelledSwitch from "./LabelledSwitch";
 import FormGroupSwitch from "./FormGroupSwitch";
 import CustomizedSwitch from "./CustomizedSwitch";
