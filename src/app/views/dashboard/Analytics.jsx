@@ -8,7 +8,7 @@ import StatCards from "./shared/StatCards";
 import Campaigns from "./shared/Campaigns";
 import StatCards2 from "./shared/StatCards2";
 import DoughnutChart from "./shared/Doughnut";
-import UpgradeCard from "./shared/UpgradeCard";
+//import UpgradeCard from "./shared/UpgradeCard";
 import TopSellingTable from "./shared/TopSellingTable";
 
 // STYLED COMPONENTS
@@ -49,8 +49,7 @@ export default function Analytics() {
             <TopSellingTable />
             <StatCards2 />
 
-            <H4>Ongoing Projects</H4>
-            <RowCards />
+
           </Grid>
 
           <Grid size={{ md: 4, xs: 12 }}>
@@ -63,8 +62,6 @@ export default function Analytics() {
                 color={[palette.primary.dark, palette.primary.main, palette.primary.light]}
               />
             </Card>
-
-            <UpgradeCard />
             <Campaigns />
           </Grid>
         </Grid>
