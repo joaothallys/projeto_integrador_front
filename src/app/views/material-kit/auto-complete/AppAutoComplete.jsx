@@ -75,7 +75,6 @@ export default function AppAutoComplete() {
               fullWidth
             >
               <MenuItem value="1">Tipo 1</MenuItem>
-              <MenuItem value="2">Tipo 2</MenuItem>
             </Select>
 
             {/* Botão de Submissão */}
