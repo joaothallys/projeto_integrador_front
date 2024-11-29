@@ -1,71 +1,69 @@
-import { Fragment } from "react";
-import Card from "@mui/material/Card";
-import Grid from "@mui/material/Grid2";
-import { styled, useTheme } from "@mui/material/styles";
+import React, { Fragment } from "react";
+import { styled } from "@mui/material/styles";
+import CircularProgress from "@mui/material/CircularProgress"; // Importa o ícone de carregamento
+import Box from "@mui/material/Box"; // Para centralizar o carregador
+import { SignJWT } from "jose";
 
-import RowCards from "./shared/RowCards";
-import StatCards from "./shared/StatCards";
-import Campaigns from "./shared/Campaigns";
-import StatCards2 from "./shared/StatCards2";
-import DoughnutChart from "./shared/Doughnut";
-//import UpgradeCard from "./shared/UpgradeCard";
-import TopSellingTable from "./shared/TopSellingTable";
-
-// STYLED COMPONENTS
-const ContentBox = styled("div")(({ theme }) => ({
-  margin: "2rem",
-  [theme.breakpoints.down("sm")]: { margin: "1rem" }
-}));
-
-const Title = styled("span")(() => ({
-  fontSize: "1rem",
-  fontWeight: "500",
-  marginRight: ".5rem",
-  textTransform: "capitalize"
-}));
-
-const SubTitle = styled("span")(({ theme }) => ({
-  fontSize: "0.875rem",
-  color: theme.palette.text.secondary
-}));
-
-const H4 = styled("h4")(({ theme }) => ({
-  fontSize: "1rem",
-  fontWeight: "500",
-  marginBottom: "1rem",
-  textTransform: "capitalize",
-  color: theme.palette.text.secondary
-}));
+const StyledIframe = styled("iframe")({
+  width: "100%",
+  height: "80vh",
+  border: "none",
+});
 
 export default function Analytics() {
-  const { palette } = useTheme();
+  const METABASE_SITE_URL = 'http://metabase.prod.cloud.polichat.com.br';
+  const METABASE_SECRET_KEY = import.meta.env.VITE_REACT_APP_HOST_METABASE;
+
+  const generateToken = async () => {
+    const payload = {
+      resource: { dashboard: 28 },
+      params: {},
+      exp: Math.round(Date.now() / 1000) + 10 * 60,
+    };
+
+    const jwt = await new SignJWT(payload)
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("10m")
+      .sign(new TextEncoder().encode(METABASE_SECRET_KEY));
+
+    return jwt;
+  };
+
+  const [iframeUrl, setIframeUrl] = React.useState("");
+  const [loading, setLoading] = React.useState(true); // Controle do estado de carregamento
+
+  React.useEffect(() => {
+    generateToken().then((token) => {
+      const url =
+        `${METABASE_SITE_URL}/embed/dashboard/${token}` +
+        "#bordered=true&titled=true";
+      setIframeUrl(url);
+    });
+  }, []);
 
   return (
     <Fragment>
-      <ContentBox className="analytics">
-        <Grid container spacing={3}>
-          <Grid size={{ md: 8, xs: 12 }}>
-            <StatCards />
-            <TopSellingTable />
-            <StatCards2 />
-
-
-          </Grid>
-
-          <Grid size={{ md: 4, xs: 12 }}>
-            <Card sx={{ px: 3, py: 2, mb: 3 }}>
-              <Title>Traffic Sources</Title>
-              <SubTitle>Last 30 days</SubTitle>
-
-              <DoughnutChart
-                height="300px"
-                color={[palette.primary.dark, palette.primary.main, palette.primary.light]}
-              />
-            </Card>
-            <Campaigns />
-          </Grid>
-        </Grid>
-      </ContentBox>
+      {loading && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "80vh",
+          }}
+        >
+          <CircularProgress /> {/* Ícone de carregamento */}
+        </Box>
+      )}
+      {iframeUrl && (
+        <StyledIframe
+          src={iframeUrl}
+          title="Metabase Dashboard"
+          allowFullScreen
+          onLoad={() => setLoading(false)} // Define como carregado quando o iframe termina de carregar
+          style={{ display: loading ? "none" : "block" }} // Esconde o iframe enquanto está carregando
+        />
+      )}
     </Fragment>
   );
 }

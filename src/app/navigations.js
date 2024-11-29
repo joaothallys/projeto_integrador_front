@@ -8,11 +8,11 @@ const navigations = [
     children: [
       { name: "Cadastro", path: "/material/customer", iconText: "C" },
       { name: "Gerenciamento", path: "/material/manage", iconText: "G" },
-      { name: "Progress", path: "/material/progress", iconText: "P" },
-      { name: "Radio", path: "/material/radio", iconText: "R" },
-      { name: "Switch", path: "/material/switch", iconText: "S" },
-      { name: "Slider", path: "/material/slider", iconText: "S" },
-      { name: "Table", path: "/material/table", iconText: "T" }
+      //{ name: "Progress", path: "/material/progress", iconText: "P" },
+      //{ name: "Radio", path: "/material/radio", iconText: "R" },
+      //{ name: "Switch", path: "/material/switch", iconText: "S" },
+      //{ name: "Slider", path: "/material/slider", iconText: "S" },
+      //{ name: "Table", path: "/material/table", iconText: "T" }
     ]
   },
 ];

@@ -202,6 +202,7 @@ export default function AppButton() {
                         variant="contained"
                         color={user.deleted_at ? "primary" : "secondary"}
                         onClick={() => openActivationDialog(user.customer_id)}
+                        style={{ width: "120px" }}
                       >
                         {user.deleted_at ? "Ativar" : "Desativar"}
                       </Button>
@@ -213,19 +214,34 @@ export default function AppButton() {
           </TableContainer>
         )}
 
-        <Box display="flex" justifyContent="center" mt={2}>
+        <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
           <Button
+            variant="outlined"
+            size="small"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           >
             Anterior
           </Button>
-          <Box mx={2}>{`Página ${currentPage} de ${lastPage}`}</Box>
+          <Box
+            mx={2}
+            px={2}
+            py={1}
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            borderRadius={1}
+            border="1px solid #ccc"
+            fontSize="14px"
+            fontWeight="bold"
+          >
+            {`Página ${currentPage} de ${lastPage}`}
+          </Box>
           <Button
+            variant="outlined"
+            size="small"
             disabled={currentPage === lastPage}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, lastPage))
-            }
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
           >
             Próxima
           </Button>

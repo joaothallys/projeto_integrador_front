@@ -101,7 +101,7 @@ export default function MatxCustomizer() {
     <Fragment>
       <Tooltip title="Theme Settings" placement="left">
         <Label className="open" onClick={tooglePanel}>
-          DEMOS
+          TEMAS
         </Label>
       </Tooltip>
 
@@ -117,7 +117,7 @@ export default function MatxCustomizer() {
               <Box display="flex">
                 <Settings className="icon" color="primary" />
                 <H5 ml={1} fontSize={16}>
-                  Theme Settings
+                  Configurações de tema
                 </H5>
               </Box>
 
@@ -132,14 +132,7 @@ export default function MatxCustomizer() {
                 onClick={() => handleTabChange(0)}
                 color={tabIndex === 0 ? "secondary" : "primary"}
                 sx={{ mr: 2 }}>
-                Demos
-              </Button>
-
-              <Button
-                variant="outlined"
-                onClick={() => handleTabChange(1)}
-                color={tabIndex === 1 ? "secondary" : "primary"}>
-                Settings
+                Temas
               </Button>
             </Box>
 
@@ -171,18 +164,6 @@ export default function MatxCustomizer() {
                     ))}
                   </Box>
                 </Box>
-              )}
-
-              {/* END LAYOUT */}
-              {tabIndex === 1 && (
-                <div>
-                  <div className="helpText">
-                    We used React context API to control layout. Check out the{" "}
-                    <Link href="http://demos.ui-lib.com/matx-react-doc/layout.html" target="_blank">
-                      Documentation
-                    </Link>
-                  </div>
-                </div>
               )}
             </StyledScrollBar>
           </MaxCustomaizer>
