@@ -22,6 +22,27 @@ const userService = {
         }
     },
 
+    sendFormData: async (tipo, token) => {
+        try {
+            const response = await axios.post(
+                `${API_URL}/post-token`, // O endpoint da API
+                new URLSearchParams({
+                    entry_type_id: tipo, // Envia o tipo do formulário
+                }),
+                {
+                    headers: {
+                        Authorization: `Bearer ${API_TOKEN}`,
+                        "Content-Type": "application/x-www-form-urlencoded", // Tipo de conteúdo esperado pela API
+                    },
+                }
+            );
+            return response.data; // Retorna a resposta da API
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            throw error; // Propaga o erro para o componente chamar a função
+        }
+    },
+
     searchCustomer: async (customerId) => {
         try {
             const response = await axios.get(
@@ -54,7 +75,7 @@ const userService = {
             });
         } catch (error) {
             console.error("Erro ao desativar cliente:", error);
-            throw error;
+            throw new Error("Erro ao desativar cliente.");
         }
     },
     reactivateClient: async (customerId) => {
@@ -70,7 +91,7 @@ const userService = {
             });
         } catch (error) {
             console.error("Erro ao reativar cliente:", error);
-            throw error;
+            throw new Error("Erro ao reativar cliente.");
         }
     },
 };

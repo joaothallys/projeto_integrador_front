@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
@@ -8,12 +8,6 @@ import styled from "@mui/material/styles/styled";
 import useTheme from "@mui/material/styles/useTheme";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Home from "@mui/icons-material/Home";
-import Menu from "@mui/icons-material/Menu";
-import Person from "@mui/icons-material/Person";
-import Settings from "@mui/icons-material/Settings";
-import WebAsset from "@mui/icons-material/WebAsset";
-import MailOutline from "@mui/icons-material/MailOutline";
-import StarOutline from "@mui/icons-material/StarOutline";
 import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
 
 import useAuth from "app/hooks/useAuth";
@@ -86,6 +80,27 @@ const Layout1Topbar = () => {
   const { logout, user } = useAuth();
   const isMdScreen = useMediaQuery(theme.breakpoints.down("md"));
 
+  const [userName, setUserName] = useState(user?.name || "Usuário Adm");
+
+  useEffect(() => {
+    const storedUserData = localStorage.getItem("user_data");
+
+    if (storedUserData) {
+      try {
+        // Parseando a string JSON para objeto
+        const userData = JSON.parse(storedUserData);
+
+        // Acessando o nome do usuário e definindo no estado
+        const name = userData?.attributes?.name;
+        if (name) {
+          setUserName(name); // Atualiza o nome do usuário
+        }
+      } catch (error) {
+        console.error("Erro ao parsear user_data", error);
+      }
+    }
+  }, []);
+
   const updateSidebarMode = (sidebarSettings) => {
     updateSettings({ layout1Settings: { leftSidebar: { ...sidebarSettings } } });
   };
@@ -118,7 +133,7 @@ const Layout1Topbar = () => {
             menuButton={
               <UserMenu>
                 <Span>
-                  Olá <strong>{user?.name || "Usuário Adm"}</strong>
+                  Olá <strong>{userName}</strong> {/* Exibe o nome do usuário */}
                 </Span>
                 <Avatar src={user?.avatar} sx={{ cursor: "pointer" }} />
               </UserMenu>
@@ -130,18 +145,6 @@ const Layout1Topbar = () => {
                 <Span sx={{ marginInlineStart: 1 }}>Home</Span>
               </Link>
             </StyledItem>
-
-            {/* <StyledItem>
-              <Link to="/page-layouts/user-profile">
-                <Person />
-                <Span sx={{ marginInlineStart: 1 }}>Profile</Span>
-              </Link>
-            </StyledItem> */}
-
-            {/* <StyledItem>
-              <Settings />
-              <Span sx={{ marginInlineStart: 1 }}>Settings</Span>
-            </StyledItem> */}
 
             <StyledItem onClick={logout}>
               <PowerSettingsNew />
