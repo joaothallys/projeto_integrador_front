@@ -43,24 +43,6 @@ const authService = {
       throw new Error(error.response?.data?.message || "Erro ao autenticar.");
     }
   },
-
-  logout: async () => {
-    try {
-      const instance = axios.create({
-      });
-
-      const logoutResponse = await instance.post(`${API_URL}/logout`);
-      if (logoutResponse.status === 200 || logoutResponse.status === 204) {
-        console.log("Logout bem-sucedido.");
-        localStorage.removeItem("user_data");
-      } else {
-        throw new Error("Erro ao deslogar.");
-      }
-    } catch (error) {
-      console.error("Erro no logout:", error);
-      throw new Error("Erro ao deslogar.");
-    }
-  },
 };
 
 export default authService;

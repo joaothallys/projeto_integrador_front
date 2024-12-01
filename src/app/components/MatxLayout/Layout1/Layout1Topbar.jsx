@@ -116,6 +116,29 @@ const Layout1Topbar = () => {
     updateSidebarMode({ mode });
   };
 
+  // Função para remover cookies
+  const clearCookies = () => {
+    const cookies = document.cookie.split(";");
+    cookies.forEach((cookie) => {
+      const cookieName = cookie.split("=")[0].trim();
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
+    console.log("Cookies removidos.");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      clearCookies();
+      localStorage.removeItem("user_data");
+      console.log("Logout bem-sucedido.");
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+    }
+  };
+
   return (
     <TopbarRoot>
       <TopbarContainer>
@@ -146,7 +169,7 @@ const Layout1Topbar = () => {
               </Link>
             </StyledItem>
 
-            <StyledItem onClick={logout}>
+            <StyledItem onClick={handleLogout}>
               <PowerSettingsNew />
               <Span sx={{ marginInlineStart: 1 }}>Logout</Span>
             </StyledItem>

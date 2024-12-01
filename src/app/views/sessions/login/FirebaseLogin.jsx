@@ -73,7 +73,7 @@ const validationSchema = Yup.object().shape({
   password: Yup.string()
     .min(1, "Password must be 6 characters long")
     .required("Password is required!"),
-  email: Yup.string().email("Invalid Email address").required("Email is required!"),
+  email: Yup.string().email("Invalid Email address").required("Email is requiredddd"),
 });
 
 export default function FirebaseLogin() {

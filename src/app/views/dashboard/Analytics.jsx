@@ -11,7 +11,7 @@ const StyledIframe = styled("iframe")({
 });
 
 export default function Analytics() {
-  const METABASE_SITE_URL = 'http://metabase.prod.cloud.polichat.com.br';
+  const METABASE_SITE_URL = 'https://metabase.prod.cloud.polichat.com.br';
   const METABASE_SECRET_KEY = import.meta.env.VITE_REACT_APP_HOST_METABASE;
 
   const generateToken = async () => {
