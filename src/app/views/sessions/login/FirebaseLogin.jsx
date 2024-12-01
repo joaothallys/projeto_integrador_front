@@ -71,9 +71,9 @@ const initialValues = {
 // Form field validation schema
 const validationSchema = Yup.object().shape({
   password: Yup.string()
-    .min(1, "Password must be 6 characters long")
-    .required("Password is required!"),
-  email: Yup.string().email("Invalid Email address").required("Email is requiredddd"),
+    .min(1, "A senha deve ter ao menos 1 caracteres")
+    .required("A senha é obrigatória!"),
+  email: Yup.string().email("Invalid Email address").required("O e-mail é obrigatório"),
 });
 
 export default function FirebaseLogin() {
@@ -142,7 +142,7 @@ export default function FirebaseLogin() {
                       size="small"
                       type="email"
                       name="email"
-                      label="Email"
+                      label="E-mail"
                       variant="outlined"
                       onBlur={handleBlur}
                       value={values.email}
@@ -158,7 +158,7 @@ export default function FirebaseLogin() {
                       size="small"
                       name="password"
                       type="password"
-                      label="Password"
+                      label="Senha"
                       variant="outlined"
                       onBlur={handleBlur}
                       value={values.password}
@@ -170,12 +170,14 @@ export default function FirebaseLogin() {
 
                     {/* Link para Esqueceu a Senha */}
                     <Box display="flex" justifyContent="space-between">
-                      <NavLink
-                        to="/session/forgot-password"
+                      <a
+                        href="https://app-spa.poli.digital/login?force_login=true"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{ color: theme.palette.primary.main }}
                       >
                         Esqueceu sua senha?
-                      </NavLink>
+                      </a>
                     </Box>
 
                     {/* Botão de Login */}
@@ -192,15 +194,17 @@ export default function FirebaseLogin() {
                     {/* Link para Suporte */}
                     <Paragraph>
                       Não tem uma conta?
-                      <NavLink
-                        to="/session/signup"
+                      <a
+                        href="https://api.whatsapp.com/send?phone=55623626666"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{
                           marginInlineStart: 5,
                           color: theme.palette.primary.main,
                         }}
                       >
                         Suporte
-                      </NavLink>
+                      </a>
                     </Paragraph>
                   </form>
                 )}

@@ -129,15 +129,6 @@ export default function AppButton() {
     setOpenDialog(true);
   };
 
-  const copyToClipboard = (token) => {
-    navigator.clipboard.writeText(token);
-    setSnackbar({
-      open: true,
-      message: "Token copiado para a área de transferência.",
-      severity: "info",
-    });
-  };
-
   const filteredData = Array.isArray(data)
     ? data.filter((user) =>
       user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
