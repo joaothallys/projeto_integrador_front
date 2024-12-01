@@ -112,9 +112,6 @@ export default function FirebaseLogin() {
 
               <Span flexGrow={1}></Span>
 
-              <a href="https://ui-lib.com/" target="_blank" rel="noopener noreferrer">
-                <img src="/assets/images/logos/ui-lib.png" alt="UI Lib Logo" />
-              </a>
             </div>
           </Grid>
 
