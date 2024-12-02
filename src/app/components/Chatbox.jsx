@@ -154,7 +154,6 @@ export default function Chatbox({ togglePopup }) {
     <ChatContainer>
       <ProfileBox>
         <Box display="flex" alignItems="center">
-          <ChatAvatar src="/assets/images/face-2.jpg" status="online" />
           <ChatStatus>
             <H5>Ryan Todd</H5>
             <Span>Active</Span>
