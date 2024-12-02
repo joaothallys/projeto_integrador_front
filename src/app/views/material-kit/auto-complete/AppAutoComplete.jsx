@@ -54,7 +54,7 @@ export default function AppAutoComplete() {
       formDataToSend.append("entry_type_id", tipo);
       formDataToSend.append("entry_customer_id", customerId);
       if (token) {
-        formDataToSend.append("token", token);
+        formDataToSend.append("entry_new_token", token);
       }
 
       const response = await axios.post(
