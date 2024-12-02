@@ -42,23 +42,18 @@ export default function AppButton() {
   const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
-  // Fetch Data on Page Change
   useEffect(() => {
-    fetchData(currentPage);
+    if (!loading) fetchData(currentPage);
   }, [currentPage]);
 
-  // Fetch Users
   const fetchData = async (page) => {
     setLoading(true);
     try {
@@ -71,52 +66,33 @@ export default function AppButton() {
       }
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
-      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-  };
+  const handleSearch = (e) => setSearch(e.target.value);
 
   const handleToggleActive = async () => {
     setLoading(true);
     try {
-      const selectedUser = data.find((user) => user.customer_id === selectedUserId);
-
-      if (!selectedUser) {
-        throw new Error("Cliente não encontrado.");
-      }
+      const selectedUser = data.find((user) => user.id === selectedUserId);
+      if (!selectedUser) throw new Error("Cliente não encontrado.");
 
       if (selectedUser.deleted_at) {
-        await userService.reactivateClient(selectedUser.customer_id);
-        setSnackbar({
-          open: true,
-          message: "Usuário ativado com sucesso.",
-          severity: "success",
-        });
+        // Reativar cliente usando a rota com token
+        await userService.reactivateClientWithToken(selectedUser.customer_id, selectedUser.token);
+        setSnackbar({ open: true, message: "Token do cliente reativado com sucesso.", severity: "success" });
       } else {
-        if (!deactivationDate) {
-          throw new Error("Data de desativação é necessária para desativar um cliente.");
-        }
-        await userService.deactivateClient(selectedUser.customer_id, deactivationDate);
-        setSnackbar({
-          open: true,
-          message: "Usuário desativado com sucesso.",
-          severity: "success",
-        });
+        // Desativar cliente
+        if (!deactivationDate) throw new Error("Data de desativação é necessária.");
+        await userService.deactivateClient(selectedUser.id, deactivationDate);
+        setSnackbar({ open: true, message: "Usuário desativado com sucesso.", severity: "success" });
       }
-
       fetchData(currentPage);
     } catch (error) {
       console.error("Erro ao alterar status do cliente:", error);
-      setSnackbar({
-        open: true,
-        message: "Erro ao alterar status do cliente.",
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: "Erro ao alterar status do cliente.", severity: "error" });
     } finally {
       setOpenDialog(false);
       setDeactivationDate("");
@@ -129,11 +105,9 @@ export default function AppButton() {
     setOpenDialog(true);
   };
 
-  const filteredData = Array.isArray(data)
-    ? data.filter((user) =>
-      user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
-    )
-    : [];
+  const filteredData = data.filter((user) =>
+    user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <AppButtonRoot>
@@ -181,18 +155,14 @@ export default function AppButton() {
                     <TableCell>
                       {user.token ? `${user.token.slice(0, 10)}...` : "vazio"}
                     </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.updated_at).toLocaleString()}
-                    </TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{new Date(user.updated_at).toLocaleString()}</TableCell>
                     <TableCell>{user.type_name}</TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
                         color={user.deleted_at ? "primary" : "secondary"}
-                        onClick={() => openActivationDialog(user.customer_id)}
+                        onClick={() => openActivationDialog(user.id)}
                         style={{ width: "120px" }}
                       >
                         {user.deleted_at ? "Ativar" : "Desativar"}
@@ -214,18 +184,7 @@ export default function AppButton() {
           >
             Anterior
           </Button>
-          <Box
-            mx={2}
-            px={2}
-            py={1}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            borderRadius={1}
-            border="1px solid #ccc"
-            fontSize="14px"
-            fontWeight="bold"
-          >
+          <Box mx={2} px={2} py={1} border="1px solid #ccc" fontSize="14px" fontWeight="bold">
             {`Página ${currentPage} de ${lastPage}`}
           </Box>
           <Button
@@ -241,27 +200,27 @@ export default function AppButton() {
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>
-          {data.find((user) => user.customer_id === selectedUserId)?.deleted_at
+          {data.find((user) => user.id === selectedUserId)?.deleted_at
             ? "Ativar Usuário"
             : "Desativar Usuário"}
         </DialogTitle>
         <DialogContent>
-          {data.find((user) => user.customer_id === selectedUserId)?.deleted_at ? (
-            <DialogContentText>
-              Tem certeza que deseja ativar este usuário?
-            </DialogContentText>
+          {data.length > 0 && selectedUserId !== null ? (
+            data.find((item) => item.id === selectedUserId)?.deleted_at ? (
+              <DialogContentText>Tem certeza que deseja ativar este usuário?</DialogContentText>
+            ) : (
+              <>
+                <DialogContentText>Insira a data para desativação do usuário:</DialogContentText>
+                <TextField
+                  type="date"
+                  fullWidth
+                  value={deactivationDate}
+                  onChange={(e) => setDeactivationDate(e.target.value)}
+                />
+              </>
+            )
           ) : (
-            <>
-              <DialogContentText>
-                Insira a data para desativação do usuário:
-              </DialogContentText>
-              <TextField
-                type="date"
-                fullWidth
-                value={deactivationDate}
-                onChange={(e) => setDeactivationDate(e.target.value)}
-              />
-            </>
+            <DialogContentText>Dados ainda estão carregando ou nenhum usuário foi selecionado.</DialogContentText>
           )}
         </DialogContent>
         <DialogActions>
@@ -278,7 +237,7 @@ export default function AppButton() {
         open={snackbar.open}
         autoHideDuration={5000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }} // Altere "horizontal" para "right"
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
           {snackbar.message}

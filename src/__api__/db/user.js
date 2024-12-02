@@ -85,13 +85,35 @@ const userService = {
 
             await axios.put(`${API_URL}/reactivate-client`, formData, {
                 headers: {
-                    "Content-Type": "multipart/form-data", // Define o tipo de conteúdo como form-data
-                    Authorization: `Bearer ${API_TOKEN}`, // Token de autorização
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${API_TOKEN}`,
                 },
             });
         } catch (error) {
             console.error("Erro ao reativar cliente:", error);
             throw new Error("Erro ao reativar cliente.");
+        }
+    },
+    reactivateClientWithToken: async (customerId, token) => {
+        try {
+            const formData = new FormData();
+            formData.append("entry_customer_id", customerId);
+            formData.append("entry_token", token);
+
+            const response = await axios.put(
+                `${API_URL}/reactivate-client-token`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${API_TOKEN}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao reativar cliente com token:", error);
+            throw new Error("Erro ao reativar cliente com token.");
         }
     },
 };
