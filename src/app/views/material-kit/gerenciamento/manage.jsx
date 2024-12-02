@@ -149,7 +149,7 @@ export default function AppButton() {
       <Box className="breadcrumb">
         <Breadcrumb
           routeSegments={[
-            { name: "Ferramentas", path: "/material" },
+            { name: "Ferramentas", path: "/material/manage" },
             { name: "Gerenciamento" },
           ]}
         />
