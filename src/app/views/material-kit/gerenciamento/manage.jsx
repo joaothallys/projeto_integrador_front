@@ -51,8 +51,10 @@ export default function AppButton() {
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
   useEffect(() => {
-    if (!loading) fetchData(currentPage);
-  }, [currentPage]);
+    if (!loading && !search) {
+      fetchData(currentPage);
+    }
+  }, [currentPage, search]);
 
   const fetchData = async (page) => {
     setLoading(true);
@@ -71,7 +73,39 @@ export default function AppButton() {
     }
   };
 
-  const handleSearch = (e) => setSearch(e.target.value);
+  const handleSearch = async (e) => {
+    setSearch(e.target.value);
+    if (e.target.value === "") {
+      fetchData(currentPage);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await userService.searchCustomer(e.target.value);
+      if (response?.data && Array.isArray(response.data)) {
+        setData(response.data);
+        setLastPage(1); // Reseta a paginação para 1 ao buscar
+        setCurrentPage(1);
+      } else {
+        setData([]);
+        setSnackbar({
+          open: true,
+          message: "Nenhum cliente encontrado.",
+          severity: "warning",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar cliente:", error);
+      setSnackbar({
+        open: true,
+        message: "Erro ao buscar cliente.",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleToggleActive = async () => {
     setLoading(true);
@@ -80,13 +114,12 @@ export default function AppButton() {
       if (!selectedUser) throw new Error("Cliente não encontrado.");
 
       if (selectedUser.deleted_at) {
-        // Reativar cliente usando a rota com token
         await userService.reactivateClientWithToken(selectedUser.customer_id, selectedUser.token);
         setSnackbar({ open: true, message: "Token do cliente reativado com sucesso.", severity: "success" });
       } else {
         // Desativar cliente
         if (!deactivationDate) throw new Error("Data de desativação é necessária.");
-        await userService.deactivateClient(selectedUser.id, deactivationDate);
+        await userService.deactivateClient(selectedUser.customer_id, deactivationDate);
         setSnackbar({ open: true, message: "Usuário desativado com sucesso.", severity: "success" });
       }
       fetchData(currentPage);
@@ -105,9 +138,11 @@ export default function AppButton() {
     setOpenDialog(true);
   };
 
-  const filteredData = data.filter((user) =>
-    user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = search
+    ? data // Retorna os resultados da pesquisa
+    : data.filter((user) =>
+      user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
+    );
 
   return (
     <AppButtonRoot>
@@ -128,6 +163,12 @@ export default function AppButton() {
             fullWidth
             value={search}
             onChange={handleSearch}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearch({ target: { value: search } });
+              }
+            }}
           />
         </Box>
 
@@ -135,7 +176,7 @@ export default function AppButton() {
           <Box display="flex" justifyContent="center" my={4}>
             <CircularProgress />
           </Box>
-        ) : (
+        ) : filteredData.length > 0 ? (
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -173,6 +214,12 @@ export default function AppButton() {
               </TableBody>
             </Table>
           </TableContainer>
+        ) : (
+          <Box display="flex" justifyContent="center" my={4}>
+            <Box textAlign="center">
+              <p>Usuário não encontrado para o Customer ID informado.</p>
+            </Box>
+          </Box>
         )}
 
         <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
@@ -207,10 +254,10 @@ export default function AppButton() {
         <DialogContent>
           {data.length > 0 && selectedUserId !== null ? (
             data.find((item) => item.id === selectedUserId)?.deleted_at ? (
-              <DialogContentText>Tem certeza que deseja ativar este usuário?</DialogContentText>
+              <DialogContentText>Tem certeza que deseja ativar este token?</DialogContentText>
             ) : (
               <>
-                <DialogContentText>Insira a data para desativação do usuário:</DialogContentText>
+                <DialogContentText>Insira a data para desativação de todos os token do usuário:</DialogContentText>
                 <TextField
                   type="date"
                   fullWidth
