@@ -48,7 +48,7 @@ export default function MatxSearchBox() {
 
       {open && (
         <SearchContainer>
-          <SearchInput type="text" placeholder="Search here..." autoFocus />
+          <SearchInput type="text" placeholder="Pesquise aqui..." autoFocus />
           <IconButton onClick={toggle} sx={{ mx: 2, verticalAlign: "middle" }}>
             <Icon sx={{ color: "text.primary" }}>close</Icon>
           </IconButton>

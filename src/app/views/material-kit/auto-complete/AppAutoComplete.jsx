@@ -89,7 +89,7 @@ export default function AppAutoComplete() {
     <Container>
       <Box className="breadcrumb">
         <Breadcrumb
-          routeSegments={[{ name: "Ferramentas", path: "/material" }, { name: "Cadastro" }]}
+          routeSegments={[{ name: "Ferramentas", path: "/material/customer" }, { name: "Cadastro" }]}
         />
       </Box>
 
