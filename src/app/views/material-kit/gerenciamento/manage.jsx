@@ -19,6 +19,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import Pagination from "@mui/lab/Pagination"; // Importando o Pagination
 import styled from "@mui/material/styles/styled";
 import { Breadcrumb, SimpleCard } from "app/components";
 import userService from "__api__/db/user";
@@ -31,6 +32,10 @@ const AppButtonRoot = styled("div")(({ theme }) => ({
     [theme.breakpoints.down("sm")]: { marginBottom: "16px" },
   },
 }));
+
+const CenteredTableCell = styled(TableCell)({
+  textAlign: "center", // Centraliza o conteúdo da célula
+});
 
 export default function AppButton() {
   const [data, setData] = useState([]);
@@ -85,7 +90,7 @@ export default function AppButton() {
       const response = await userService.searchCustomer(e.target.value);
       if (response?.data && Array.isArray(response.data)) {
         setData(response.data);
-        setLastPage(1); // Reseta a paginação para 1 ao buscar
+        setLastPage(1);
         setCurrentPage(1);
       } else {
         setData([]);
@@ -117,7 +122,6 @@ export default function AppButton() {
         await userService.reactivateClientWithToken(selectedUser.customer_id, selectedUser.token);
         setSnackbar({ open: true, message: "Token do cliente reativado com sucesso.", severity: "success" });
       } else {
-        // Desativar cliente
         if (!deactivationDate) throw new Error("Data de desativação é necessária.");
         await userService.deactivateClient(selectedUser.customer_id, deactivationDate);
         setSnackbar({ open: true, message: "Usuário desativado com sucesso.", severity: "success" });
@@ -138,8 +142,12 @@ export default function AppButton() {
     setOpenDialog(true);
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value); // Atualiza a página atual ao clicar
+  };
+
   const filteredData = search
-    ? data // Retorna os resultados da pesquisa
+    ? data
     : data.filter((user) =>
       user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
     );
@@ -181,7 +189,7 @@ export default function AppButton() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Customer ID</TableCell>
+                  <CenteredTableCell>Customer ID</CenteredTableCell>
                   <TableCell>Token</TableCell>
                   <TableCell>Criado em</TableCell>
                   <TableCell>Última Atualização</TableCell>
@@ -192,7 +200,7 @@ export default function AppButton() {
               <TableBody>
                 {filteredData.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell>{user.customer_id}</TableCell>
+                    <CenteredTableCell>{user.customer_id}</CenteredTableCell>
                     <TableCell>
                       {user.token ? `${user.token.slice(0, 10)}...` : "vazio"}
                     </TableCell>
@@ -222,26 +230,16 @@ export default function AppButton() {
           </Box>
         )}
 
-        <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          >
-            Anterior
-          </Button>
-          <Box mx={2} px={2} py={1} border="1px solid #ccc" fontSize="14px" fontWeight="bold">
-            {`Página ${currentPage} de ${lastPage}`}
-          </Box>
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={currentPage === lastPage}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
-          >
-            Próxima
-          </Button>
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={lastPage}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+            size="medium"
+            showFirstButton
+            showLastButton
+          />
         </Box>
       </SimpleCard>
 
@@ -254,20 +252,28 @@ export default function AppButton() {
         <DialogContent>
           {data.length > 0 && selectedUserId !== null ? (
             data.find((item) => item.id === selectedUserId)?.deleted_at ? (
-              <DialogContentText>Tem certeza que deseja ativar este token?</DialogContentText>
+              <DialogContentText>
+                Tem certeza que deseja ativar este token?
+              </DialogContentText>
             ) : (
-              <>
-                <DialogContentText>Insira a data para desativação de todos os token do usuário:</DialogContentText>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <DialogContentText>
+                  Insira a data para desativação de todos os tokens do usuário:
+                </DialogContentText>
                 <TextField
                   type="date"
                   fullWidth
                   value={deactivationDate}
                   onChange={(e) => setDeactivationDate(e.target.value)}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }} // Garante que o label não interfira
                 />
-              </>
+              </Box>
             )
           ) : (
-            <DialogContentText>Dados ainda estão carregando ou nenhum usuário foi selecionado.</DialogContentText>
+            <DialogContentText>
+              Dados ainda estão carregando ou nenhum usuário foi selecionado.
+            </DialogContentText>
           )}
         </DialogContent>
         <DialogActions>

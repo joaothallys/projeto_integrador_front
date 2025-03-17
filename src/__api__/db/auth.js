@@ -20,7 +20,7 @@ const authService = {
       if (loginResponse.status === 200 || loginResponse.status === 204) {
         const userData = loginResponse.data;
 
-        if (userData.status === "ONLINE" && userData.roles.some(role => role.name === "adm")) {
+        if (userData.roles.some(role => role.name === "adm")) {
           // Armazena a resposta completa no localStorage
           localStorage.setItem("user_data", JSON.stringify(userData));
           console.log("Login bem-sucedido.");
