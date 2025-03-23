@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://disparador-sqs.poli.digital/get-me-foundation";
+const API_URL = "https://disparador-api-gamma-polidigital.svc-us5.zcloud.ws/get-me-foundation";
 
 const authService = {
   login: async (email, password) => {

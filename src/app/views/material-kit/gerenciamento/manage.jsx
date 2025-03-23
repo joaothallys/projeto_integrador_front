@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -9,20 +9,13 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  CircularProgress,
+  Switch,
+  FormControlLabel,
   Snackbar,
   Alert,
 } from "@mui/material";
-import Pagination from "@mui/lab/Pagination"; // Importando o Pagination
 import styled from "@mui/material/styles/styled";
 import { Breadcrumb, SimpleCard } from "app/components";
-import userService from "__api__/db/user";
 
 // Styled Components
 const AppButtonRoot = styled("div")(({ theme }) => ({
@@ -34,257 +27,294 @@ const AppButtonRoot = styled("div")(({ theme }) => ({
 }));
 
 const CenteredTableCell = styled(TableCell)({
-  textAlign: "center", // Centraliza o conteúdo da célula
+  textAlign: "center",
 });
 
-export default function AppButton() {
-  const [data, setData] = useState([]);
-  const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState(null);
-  const [deactivationDate, setDeactivationDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+const FilterButton = styled(Button)(({ theme, active }) => ({
+  marginRight: theme.spacing(1),
+  backgroundColor: active ? theme.palette.primary.main : theme.palette.grey[300],
+  color: active ? theme.palette.common.white : theme.palette.text.primary,
+  "&:hover": {
+    backgroundColor: active ? theme.palette.primary.dark : theme.palette.grey[400],
+  },
+}));
 
+export default function PrintLabels() {
+  const [filters, setFilters] = useState({
+    pending: false,
+    smartEnvios: false,
+    readyToShip: false,
+  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
+  // Dados estáticos baseados na imagem
+  const orders = [
+    {
+      channel: "Tiny",
+      code: "1331511229",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Márcia Fonseca",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:07",
+    },
+    {
+      channel: "Tiny",
+      code: "8560780848",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Ian Brites",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:07",
+    },
+    {
+      channel: "Tiny",
+      code: "1331510845",
+      carrier: "GFL",
+      document: "DC",
+      buyer: "Kelly Regina Costa Santos",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+    {
+      channel: "Tiny",
+      code: "1519650543847-01",
+      carrier: "J&T Express",
+      document: "DC",
+      buyer: "Mateus Almeida De Vasconcelos",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+    {
+      channel: "Tiny",
+      code: "1331510723",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Michelle Maria De Andrade Lins",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+    {
+      channel: "Tiny",
+      code: "46680",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Cecilio Martins Filho",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+    {
+      channel: "Bling",
+      code: "42232",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Nicolas Matsushita",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+    {
+      channel: "Tiny",
+      code: "1331511003",
+      carrier: "Loggi",
+      document: "DC",
+      buyer: "Renata Alves Costa",
+      status: "Pronto para enviar",
+      dateTime: "23/03/25, 18:06",
+    },
+  ];
 
-  useEffect(() => {
-    if (!loading && !search) {
-      fetchData(currentPage);
-    }
-  }, [currentPage, search]);
-
-  const fetchData = async (page) => {
-    setLoading(true);
-    try {
-      const response = await userService.getCustomers(page);
-      if (response?.data && Array.isArray(response.data)) {
-        setData(response.data);
-        setLastPage(response.last_page || 1);
-      } else {
-        setData([]);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar dados:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleFilterChange = (filter) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filter]: !prev[filter],
+    }));
   };
 
-  const handleSearch = async (e) => {
-    setSearch(e.target.value);
-    if (e.target.value === "") {
-      fetchData(currentPage);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await userService.searchCustomer(e.target.value);
-      if (response?.data && Array.isArray(response.data)) {
-        setData(response.data);
-        setLastPage(1);
-        setCurrentPage(1);
-      } else {
-        setData([]);
-        setSnackbar({
-          open: true,
-          message: "Nenhum cliente encontrado.",
-          severity: "warning",
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao buscar cliente:", error);
-      setSnackbar({
-        open: true,
-        message: "Erro ao buscar cliente.",
-        severity: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handlePrintLabels = () => {
+    setSnackbar({
+      open: true,
+      message: "Impressão de etiquetas iniciada com sucesso!",
+      severity: "success",
+    });
   };
 
-  const handleToggleActive = async () => {
-    setLoading(true);
-    try {
-      const selectedUser = data.find((user) => user.id === selectedUserId);
-      if (!selectedUser) throw new Error("Cliente não encontrado.");
-
-      if (selectedUser.deleted_at) {
-        await userService.reactivateClientWithToken(selectedUser.customer_id, selectedUser.token);
-        setSnackbar({ open: true, message: "Token do cliente reativado com sucesso.", severity: "success" });
-      } else {
-        if (!deactivationDate) throw new Error("Data de desativação é necessária.");
-        await userService.deactivateClient(selectedUser.customer_id, deactivationDate);
-        setSnackbar({ open: true, message: "Usuário desativado com sucesso.", severity: "success" });
-      }
-      fetchData(currentPage);
-    } catch (error) {
-      console.error("Erro ao alterar status do cliente:", error);
-      setSnackbar({ open: true, message: "Erro ao alterar status do cliente.", severity: "error" });
-    } finally {
-      setOpenDialog(false);
-      setDeactivationDate("");
-      setLoading(false);
-    }
+  const handleNewOrder = () => {
+    setSnackbar({
+      open: true,
+      message: "Funcionalidade 'Novo pedido' será implementada em breve.",
+      severity: "info",
+    });
   };
 
-  const openActivationDialog = (id) => {
-    setSelectedUserId(id);
-    setOpenDialog(true);
+  const handleDocuments = () => {
+    setSnackbar({
+      open: true,
+      message: "Funcionalidade 'Meus Documentos' será implementada em breve.",
+      severity: "info",
+    });
   };
 
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value); // Atualiza a página atual ao clicar
+  const handleReports = () => {
+    setSnackbar({
+      open: true,
+      message: "Funcionalidade 'Meus Relatórios' será implementada em breve.",
+      severity: "info",
+    });
   };
 
-  const filteredData = search
-    ? data
-    : data.filter((user) =>
-      user.customer_id.toString().toLowerCase().includes(search.toLowerCase())
-    );
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Filtra os pedidos com base nos filtros ativos
+  const filteredOrders = orders.filter((order) => {
+    if (!filters.pending && !filters.smartEnvios && !filters.readyToShip) return true;
+    if (filters.readyToShip && order.status === "Pronto para enviar") return true;
+    // Adicionar lógica para outros filtros (pendência, SmartEnvios) quando houver dados correspondentes
+    return false;
+  });
 
   return (
     <AppButtonRoot>
       <Box className="breadcrumb">
         <Breadcrumb
           routeSegments={[
-            { name: "Ferramentas", path: "/material/manage" },
-            { name: "Gerenciamento" },
+            { name: "Ferramentas", path: "/material/labels" },
+            { name: "Imprimir Etiquetas" },
           ]}
         />
       </Box>
 
-      <SimpleCard title="Gerenciamento de Usuários">
-        <Box mb={2}>
-          <TextField
-            label="Pesquisar por Customer ID"
+      <SimpleCard title="Imprimir Etiquetas">
+        {/* Filtros */}
+        <Box mb={2} display="flex" alignItems="center" gap={2}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={filters.pending}
+                onChange={() => handleFilterChange("pending")}
+              />
+            }
+            label="Com pendência"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={filters.smartEnvios}
+                onChange={() => handleFilterChange("smartEnvios")}
+              />
+            }
+            label="Serviço SmartEnvios"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={filters.readyToShip}
+                onChange={() => handleFilterChange("readyToShip")}
+              />
+            }
+            label="Pronto para Enviar"
+          />
+        </Box>
+
+        {/* Botões de Ação */}
+        <Box mb={2} display="flex" gap={2}>
+          <Button
             variant="outlined"
-            fullWidth
-            value={search}
-            onChange={handleSearch}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleSearch({ target: { value: search } });
-              }
-            }}
-          />
-        </Box>
-
-        {loading ? (
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        ) : filteredData.length > 0 ? (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <CenteredTableCell>Customer ID</CenteredTableCell>
-                  <TableCell>Token</TableCell>
-                  <TableCell>Criado em</TableCell>
-                  <TableCell>Última Atualização</TableCell>
-                  <TableCell>Tipo</TableCell>
-                  <TableCell>Ação</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredData.map((user) => (
-                  <TableRow key={user.id}>
-                    <CenteredTableCell>{user.customer_id}</CenteredTableCell>
-                    <TableCell>
-                      {user.token ? `${user.token.slice(0, 10)}...` : "vazio"}
-                    </TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
-                    <TableCell>{new Date(user.updated_at).toLocaleString()}</TableCell>
-                    <TableCell>{user.type_name}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        color={user.deleted_at ? "primary" : "secondary"}
-                        onClick={() => openActivationDialog(user.id)}
-                        style={{ width: "120px" }}
-                      >
-                        {user.deleted_at ? "Ativar" : "Desativar"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Box display="flex" justifyContent="center" my={4}>
-            <Box textAlign="center">
-              <p>Usuário não encontrado para o Customer ID informado.</p>
-            </Box>
-          </Box>
-        )}
-
-        <Box display="flex" justifyContent="center" mt={3}>
-          <Pagination
-            count={lastPage}
-            page={currentPage}
-            onChange={handlePageChange}
             color="primary"
-            size="medium"
-            showFirstButton
-            showLastButton
-          />
+            onClick={() =>
+              setSnackbar({
+                open: true,
+                message: "Funcionalidade 'Filtros' será implementada em breve.",
+                severity: "info",
+              })
+            }
+          >
+            Filtros
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleNewOrder}>
+            Novo pedido
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleDocuments}
+          >
+            Meus Documentos
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleReports}
+          >
+            Meus Relatórios
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handlePrintLabels}
+          >
+            Imprimir Etiquetas
+          </Button>
         </Box>
-      </SimpleCard>
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>
-          {data.find((user) => user.id === selectedUserId)?.deleted_at
-            ? "Ativar Usuário"
-            : "Desativar Usuário"}
-        </DialogTitle>
-        <DialogContent>
-          {data.length > 0 && selectedUserId !== null ? (
-            data.find((item) => item.id === selectedUserId)?.deleted_at ? (
-              <DialogContentText>
-                Tem certeza que deseja ativar este token?
-              </DialogContentText>
-            ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <DialogContentText>
-                  Insira a data para desativação de todos os tokens do usuário:
-                </DialogContentText>
-                <TextField
-                  type="date"
-                  fullWidth
-                  value={deactivationDate}
-                  onChange={(e) => setDeactivationDate(e.target.value)}
-                  variant="outlined"
-                  InputLabelProps={{ shrink: true }} // Garante que o label não interfira
-                />
-              </Box>
-            )
-          ) : (
-            <DialogContentText>
-              Dados ainda estão carregando ou nenhum usuário foi selecionado.
-            </DialogContentText>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={handleToggleActive} color="secondary" autoFocus>
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Tabela */}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Canal</TableCell>
+                <TableCell>Código</TableCell>
+                <TableCell>Transportadora</TableCell>
+                <TableCell>Documento</TableCell>
+                <TableCell>Comprador</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Data / hora</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{order.channel}</TableCell>
+                    <TableCell>{order.code}</TableCell>
+                    <TableCell>{order.carrier}</TableCell>
+                    <TableCell>{order.document}</TableCell>
+                    <TableCell>{order.buyer}</TableCell>
+                    <CenteredTableCell>
+                      <Box
+                        sx={{
+                          bgcolor:
+                            order.status === "Pronto para enviar"
+                              ? "success.light"
+                              : "warning.light",
+                          color: "white",
+                          borderRadius: "12px",
+                          padding: "4px 8px",
+                          display: "inline-block",
+                        }}
+                      >
+                        {order.status}
+                      </Box>
+                    </CenteredTableCell>
+                    <TableCell>{order.dateTime}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    Nenhum pedido encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </SimpleCard>
 
       <Snackbar
         open={snackbar.open}

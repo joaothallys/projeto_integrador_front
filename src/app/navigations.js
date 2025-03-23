@@ -6,7 +6,7 @@ const navigations = [
     icon: "favorite",
     badge: { value: "2+", color: "secondary" },
     children: [
-      { name: "Cadastro", path: "/material/customer", iconText: "C" },
+      { name: "Cotação", path: "/material/customer", iconText: "C" },
       { name: "Gerenciamento", path: "/material/manage", iconText: "G" },
       //{ name: "Progress", path: "/material/progress", iconText: "P" },
       //{ name: "Radio", path: "/material/radio", iconText: "R" },

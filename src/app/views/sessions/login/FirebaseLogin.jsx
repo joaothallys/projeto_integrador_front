@@ -71,12 +71,12 @@ const initialValues = {
 // Form field validation schema
 const validationSchema = Yup.object().shape({
   password: Yup.string()
-    .min(1, "A senha deve ter ao menos 1 caracteres")
+    .min(1, "A senha deve ter ao menos 1 caractere")
     .required("A senha é obrigatória!"),
-  email: Yup.string().email("Invalid Email address").required("O e-mail é obrigatório"),
+  email: Yup.string().email("E-mail inválido").required("O e-mail é obrigatório"),
 });
 
-export default function FirebaseLogin() {
+export default function SmartEnviosLogin() {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
   const { login } = useAuth();
@@ -84,7 +84,7 @@ export default function FirebaseLogin() {
   const handleFormSubmit = async (values, { setErrors }) => {
     try {
       await login(values.email, values.password);
-      enqueueSnackbar("Login realizado com sucesso!", { variant: "success" });
+      enqueueSnackbar("Login realizado com sucesso! Bem-vindo à SmartEnvios!", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Erro ao fazer login: " + error.message, { variant: "error" });
       setErrors({ email: "Credenciais inválidas. Verifique e tente novamente." });
@@ -99,19 +99,19 @@ export default function FirebaseLogin() {
           <Grid item md={6} xs={12}>
             <div className="cardLeft">
               <Logo>
-                <MatxLogo /> <span>Disparador</span>
+                <MatxLogo /> {/* Substituir por logo da SmartEnvios, se houver */}
+                <span>TransporTech</span>
               </Logo>
 
-              <h1 className="mainTitle">Bem-vindo ao Disparador de Mensagens</h1>
+              <h1 className="mainTitle">Bem-vindo à sua solução logística!</h1>
 
               <div className="features">
-                <div className="item">Autenticação segura e confiável</div>
-                <div className="item">Ambiente organizado e intuitivo</div>
-                <div className="item">Painel prático para gerenciamento de usuários</div>
+                <div className="item">Fretes mais baratos e competitivos</div>
+                <div className="item">Gestão simplificada de entregas</div>
+                <div className="item">Aumente suas vendas com praticidade</div>
               </div>
 
               <Span flexGrow={1}></Span>
-
             </div>
           </Grid>
 
@@ -168,7 +168,7 @@ export default function FirebaseLogin() {
                     {/* Link para Esqueceu a Senha */}
                     <Box display="flex" justifyContent="space-between">
                       <a
-                        href="https://app-spa.poli.digital/login?force_login=true"
+                        href="https://smartenvios.com.br/recuperar-senha" // URL fictícia
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: theme.palette.primary.main }}
@@ -185,14 +185,14 @@ export default function FirebaseLogin() {
                       variant="contained"
                       sx={{ my: 2 }}
                     >
-                      Login
+                      Entrar
                     </LoadingButton>
 
                     {/* Link para Suporte */}
                     <Paragraph>
-                      Não tem uma conta?
+                      Novo na SmartEnvios?
                       <a
-                        href="https://api.whatsapp.com/send?phone=55623626666"
+                        href="https://smartenvios.com.br/suporte" // URL fictícia
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -200,7 +200,7 @@ export default function FirebaseLogin() {
                           color: theme.palette.primary.main,
                         }}
                       >
-                        Suporte
+                        Fale com o suporte
                       </a>
                     </Paragraph>
                   </form>
