@@ -3,7 +3,7 @@ import Loadable from "app/components/Loadable";
 
 //const AppIcon = Loadable(lazy(() => import("./icons/AppIcon")));
 const AppProgress = Loadable(lazy(() => import("./AppProgress")));
-//const AppRadio = Loadable(lazy(() => import("./radio/AppRadio")));
+const AppRadio = Loadable(lazy(() => import("./radio/AppRadio")));
 //const AppTable = Loadable(lazy(() => import("./tables/AppTable")));
 const AppSwitch = Loadable(lazy(() => import("./switch/AppSwitch")));
 //const AppSlider = Loadable(lazy(() => import("./slider/AppSlider")));
@@ -17,7 +17,7 @@ const materialRoutes = [
   //{ path: "/material/icons", element: <AppIcon /> },
   { path: "/material/progress", element: <AppProgress /> },
   { path: "/material/switch", element: <AppSwitch /> },
-  //{ path: "/material/radio", element: <AppRadio /> },
+  { path: "/material/radio", element: <AppRadio /> },
   //{ path: "/material/slider", element: <AppSlider /> },
   { path: "/material/customer", element: <AppAutoComplete /> },
   //{ path: "/material/snackbar", element: <AppSnackbar /> }

@@ -6,11 +6,17 @@ import {
     Alert,
     Switch,
     FormControlLabel,
+    Typography,
+    Fab
 } from '@mui/material';
-import styled from '@mui/material/styles/styled';
 import { Breadcrumb, SimpleCard } from 'app/components';
+import { styled } from '@mui/material/styles';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import LabelIcon from '@mui/icons-material/Label';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 
-// Styled Components
 const AppButtonRoot = styled('div')(({ theme }) => ({
     margin: '30px',
     '& .breadcrumb': {
@@ -21,62 +27,46 @@ const AppButtonRoot = styled('div')(({ theme }) => ({
 
 const MarketplaceCard = styled('div')(({ theme }) => ({
     backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: theme.shadows[2],
+    borderRadius: '12px',
+    boxShadow: theme.shadows[3],
     padding: theme.spacing(2),
-    margin: theme.spacing(1),
     width: '100%',
-    maxWidth: '320px', // Ensures cards don't stretch too wide
-    minHeight: '260px', // Maintains a rectangular shape
+    maxWidth: '320px',
+    minHeight: '280px',
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(2),
+    justifyContent: 'space-between',
     boxSizing: 'border-box',
-    [theme.breakpoints.down('sm')]: {
-        maxWidth: '100%', // Allows cards to take full width on small screens
-        minHeight: '240px', // Slightly shorter on small screens
-    },
 }));
 
 const LogoDescriptionContainer = styled('div')({
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: '12px',
-    flexWrap: 'wrap', // Prevents overflow on smaller screens
-    minHeight: '80px', // Ensures consistent height for description
+    minHeight: '80px',
 });
 
 const ActionButtonsContainer = styled('div')({
     display: 'flex',
     justifyContent: 'space-between',
     gap: '8px',
-    flexWrap: 'wrap', // Allows buttons to wrap if needed
 });
 
-const IconButton = styled(Button)(({ theme }) => ({
-    backgroundColor: theme.palette.grey[200],
-    color: theme.palette.text.primary,
-    borderRadius: '50%',
-    minWidth: '32px',
-    height: '32px',
-    padding: 0,
-    '&:hover': {
-        backgroundColor: theme.palette.grey[300],
-    },
-}));
+const iconMap = {
+    Cotacao: <ListAltIcon />,
+    Pedido: <ShoppingCartIcon />,
+    'Nota Fisc.': <ReceiptIcon />,
+    Etiquetas: <LabelIcon />,
+    Rastreio: <TrackChangesIcon />,
+};
 
 const Analytics = () => {
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success',
-    });
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-    // State to manage the active status of each marketplace
     const [marketplaces, setMarketplaces] = useState([
         {
-            title: 'Bling',
-            description: 'O Bling é um sistema de gestão empresarial que integra vendas, finanças e estoques para e-commerce e marketplaces.',
+            title: 'Amazon',
+            description: 'O Amazon Marketplace é uma plataforma onde vendedores independentes podem listar e vender seus produtos.',
             logo: 'https://i.imgur.com/AoWZCcT.png',
             active: true,
         },
@@ -93,20 +83,14 @@ const Analytics = () => {
             active: true,
         },
         {
-            title: 'Shopify',
-            description: 'O Shopify é uma plataforma de e-commerce que permite criar lojas online personalizadas e gerenciar vendas com facilidade.',
-            logo: 'https://i.imgur.com/AnXX1i8.jpeg',
-            active: false,
-        },
-        {
             title: 'Mercado Livre',
             description: 'O Mercado Livre é uma plataforma de e-commerce e marketplace que conecta vendedores e compradores.',
             logo: 'https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.1/mercadolibre/logo__large_plus.png',
             active: true,
         },
         {
-            title: 'Nuvemshop',
-            description: 'A Plug.to é uma plataforma eleita 3x a Melhor plataforma de e-commerce pela ABCOMM.',
+            title: 'Plugg.to',
+            description: 'A Plugg.to é uma plataforma de integração de marketplaces e e-commerce que permite aos lojistas expandir suas vendas.',
             logo: 'https://i.imgur.com/jnww5g2.png',
             active: false,
         },
@@ -114,138 +98,58 @@ const Analytics = () => {
 
     const handleAction = (action, marketplaceTitle) => {
         if (action === 'Ativar/Desativar') {
-            setMarketplaces((prevMarketplaces) =>
-                prevMarketplaces.map((marketplace) =>
-                    marketplace.title === marketplaceTitle
-                        ? {
-                            ...marketplace,
-                            active: !marketplace.active,
-                        }
-                        : marketplace
+            setMarketplaces((prev) =>
+                prev.map((m) =>
+                    m.title === marketplaceTitle ? { ...m, active: !m.active } : m
                 )
             );
+            const activeNow = marketplaces.find((m) => m.title === marketplaceTitle)?.active;
             setSnackbar({
                 open: true,
-                message: `Integração ${marketplaceTitle} ${marketplaces.find((m) => m.title === marketplaceTitle).active
-                    ? 'desativada'
-                    : 'ativada'
-                    } com sucesso!`,
+                message: `Integração ${marketplaceTitle} ${activeNow ? 'desativada' : 'ativada'} com sucesso!`,
                 severity: 'success',
             });
         } else {
-            setSnackbar({
-                open: true,
-                message: `Funcionalidade '${action}' será implementada em breve.`,
-                severity: 'info',
-            });
+            setSnackbar({ open: true, message: `Funcionalidade '${action}' será implementada.`, severity: 'info' });
         }
-    };
-
-    const handleConfigure = () => {
-        setSnackbar({
-            open: true,
-            message: 'Configuração iniciada com sucesso!',
-            severity: 'success',
-        });
-    };
-
-    const handleEdit = () => {
-        setSnackbar({
-            open: true,
-            message: 'Funcionalidade "Editar" será implementada em breve.',
-            severity: 'info',
-        });
-    };
-
-    const handleSnackbarClose = () => {
-        setSnackbar({ ...snackbar, open: false });
     };
 
     return (
         <AppButtonRoot>
             <Box className="breadcrumb">
-                <Breadcrumb
-                    routeSegments={[
-                        { name: 'Integrações', path: '/integrations' },
-                        { name: 'Marketplaces' },
-                    ]}
-                />
+                <Breadcrumb routeSegments={[{ name: 'Integrações' }, { name: 'Marketplaces' }]} />
             </Box>
-
             <SimpleCard title="Marketplaces">
-                <Box mb={2} display="flex" gap={2}>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        onClick={() => handleAction('Filtros')}
-                    >
-                        Filtros
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleAction('Nova Integração')}
-                    >
-                        Nova Integração
-                    </Button>
-                </Box>
-
                 <Box
                     display="grid"
-                    gridTemplateColumns={{
-                        xs: '1fr', // 1 column on extra small screens
-                        sm: 'repeat(auto-fit, minmax(320px, 1fr))', // Adjusts to fit cards of 320px width
-                        md: 'repeat(auto-fit, minmax(320px, 1fr))', // Same for medium screens and above
-                    }}
-                    gap={2}
-                    justifyItems="center" // Centers the cards in the grid
+                    gridTemplateColumns={{ xs: '1fr', sm: 'repeat(auto-fit, minmax(320px, 1fr))' }}
+                    gap={3}
                 >
-                    {marketplaces.map((marketplace, index) => (
-                        <MarketplaceCard key={index}>
+                    {marketplaces.map((marketplace, idx) => (
+                        <MarketplaceCard key={idx}>
                             <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <h3>{marketplace.title}</h3>
+                                <Typography fontWeight={600}>{marketplace.title}</Typography>
                                 <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={marketplace.active}
-                                            onChange={() => handleAction('Ativar/Desativar', marketplace.title)}
-                                        />
-                                    }
-                                    label={marketplace.active ? 'Ativar' : 'Desativar'}
+                                    control={<Switch checked={marketplace.active} onChange={() => handleAction('Ativar/Desativar', marketplace.title)} />}
+                                    label="Ativar"
                                 />
                             </Box>
                             <LogoDescriptionContainer>
-                                <img
-                                    src={marketplace.logo}
-                                    alt={`${marketplace.title} logo`}
-                                    style={{ width: '64px', height: '64px', objectFit: 'contain' }}
-                                />
-                                <p style={{ fontSize: '14px', color: '#666', flex: 1 }}>
+                                <img src={marketplace.logo} alt={marketplace.title} width={50} height={50} style={{ objectFit: 'contain' }} />
+                                <Typography variant="body2" color="textSecondary">
                                     {marketplace.description}
-                                </p>
+                                </Typography>
                             </LogoDescriptionContainer>
                             <ActionButtonsContainer>
-                                {['Cotação', 'Pedido', 'Nota Fisc.', 'Etiquetas', 'Rastreio'].map((action, idx) => (
-                                    <IconButton key={idx} onClick={() => handleAction(action)}>
-                                        {action.charAt(0)}
-                                    </IconButton>
+                                {Object.entries(iconMap).map(([label, icon], idx) => (
+                                    <Fab key={idx} size="small" sx={{ bgcolor: '#e0f7fa', color: '#0288d1' }}>
+                                        {icon}
+                                    </Fab>
                                 ))}
                             </ActionButtonsContainer>
-                            <Box display="flex" justifyContent="space-between">
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleConfigure}
-                                >
-                                    Configurar
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    color="primary"
-                                    onClick={handleEdit}
-                                >
-                                    Editar
-                                </Button>
+                            <Box display="flex" justifyContent="space-between" mt={2}>
+                                <Button variant="contained" size="small" onClick={() => handleAction('Configurar', marketplace.title)}>Configurar</Button>
+                                <Button variant="outlined" size="small" onClick={() => handleAction('Editar', marketplace.title)}>Editar</Button>
                             </Box>
                         </MarketplaceCard>
                     ))}
@@ -255,10 +159,10 @@ const Analytics = () => {
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={5000}
-                onClose={handleSnackbarClose}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+                <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>

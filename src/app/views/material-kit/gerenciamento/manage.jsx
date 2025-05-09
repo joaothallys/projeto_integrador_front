@@ -13,11 +13,13 @@ import {
   FormControlLabel,
   Snackbar,
   Alert,
+  Chip,
+  Typography,
 } from "@mui/material";
+import { FilterList } from "@mui/icons-material";
 import styled from "@mui/material/styles/styled";
 import { Breadcrumb, SimpleCard } from "app/components";
 
-// Styled Components
 const AppButtonRoot = styled("div")(({ theme }) => ({
   margin: "30px",
   "& .breadcrumb": {
@@ -26,18 +28,30 @@ const AppButtonRoot = styled("div")(({ theme }) => ({
   },
 }));
 
-const CenteredTableCell = styled(TableCell)({
-  textAlign: "center",
-});
-
-const FilterButton = styled(Button)(({ theme, active }) => ({
-  marginRight: theme.spacing(1),
-  backgroundColor: active ? theme.palette.primary.main : theme.palette.grey[300],
-  color: active ? theme.palette.common.white : theme.palette.text.primary,
-  "&:hover": {
-    backgroundColor: active ? theme.palette.primary.dark : theme.palette.grey[400],
-  },
+const StyledSwitchContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: theme.spacing(2),
+  marginBottom: theme.spacing(2),
 }));
+
+const FilterButton = styled(Button)(({ theme }) => ({
+  background: "linear-gradient(45deg, #9C27B0, #E040FB)",
+  color: "white",
+  borderRadius: 30,
+  textTransform: "none",
+  padding: "6px 16px",
+  fontWeight: 600,
+  boxShadow: "0 3px 5px 2px rgba(156, 39, 176, .3)",
+}));
+
+const RoundedButton = styled(Button)(({ theme }) => ({
+  borderRadius: 30,
+  textTransform: "none",
+  padding: "6px 20px",
+  fontWeight: 600,
+}));
+
+const ChannelLogo = styled("img")({ width: 24, height: 24, marginRight: 8 });
 
 export default function PrintLabels() {
   const [filters, setFilters] = useState({
@@ -45,228 +59,110 @@ export default function PrintLabels() {
     smartEnvios: false,
     readyToShip: false,
   });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  // Dados estáticos baseados na imagem
   const orders = [
     {
       channel: "Tiny",
-      code: "1331511229",
-      carrier: "Loggi",
-      document: "DC",
-      buyer: "Márcia Fonseca",
-      status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:07",
-    },
-    {
-      channel: "Tiny",
-      code: "8560780848",
-      carrier: "Loggi",
-      document: "DC",
-      buyer: "Ian Brites",
-      status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:07",
-    },
-    {
-      channel: "Tiny",
-      code: "1331510845",
+      code: "136018650",
       carrier: "GFL",
       document: "DC",
-      buyer: "Kelly Regina Costa Santos",
+      buyer: "Elisangela Cardoso",
+      cpf: "707.245.045-91",
       status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
+      dateTime: "08/05/25, 21:54",
     },
     {
       channel: "Tiny",
-      code: "1519650543847-01",
+      code: "136018584",
       carrier: "J&T Express",
       document: "DC",
-      buyer: "Mateus Almeida De Vasconcelos",
+      buyer: "Renata Menezes",
+      cpf: "294.530.968-81",
       status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
+      dateTime: "08/05/25, 21:54",
     },
     {
       channel: "Tiny",
-      code: "1331510723",
-      carrier: "Loggi",
+      code: "900715559",
+      carrier: "J&T Express",
       document: "DC",
-      buyer: "Michelle Maria De Andrade Lins",
+      buyer: "Renata Santos Da Conceicao",
+      cpf: "091.013.417-07",
       status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
+      dateTime: "08/05/25, 21:53",
     },
     {
       channel: "Tiny",
-      code: "46680",
-      carrier: "Loggi",
+      code: "136018204",
+      carrier: "J&T Express",
       document: "DC",
-      buyer: "Cecilio Martins Filho",
+      buyer: "Karine Fernanda Alves Da Costa",
+      cpf: "100.033.869-02",
       status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
-    },
-    {
-      channel: "Bling",
-      code: "42232",
-      carrier: "Loggi",
-      document: "DC",
-      buyer: "Nicolas Matsushita",
-      status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
+      dateTime: "08/05/25, 21:53",
     },
     {
       channel: "Tiny",
-      code: "1331511003",
+      code: "900715322",
       carrier: "Loggi",
       document: "DC",
-      buyer: "Renata Alves Costa",
+      buyer: "Vilma De Souza Penido",
+      cpf: "885.433.906-72",
       status: "Pronto para enviar",
-      dateTime: "23/03/25, 18:06",
+      dateTime: "08/05/25, 21:53",
     },
   ];
 
   const handleFilterChange = (filter) => {
-    setFilters((prev) => ({
-      ...prev,
-      [filter]: !prev[filter],
-    }));
+    setFilters((prev) => ({ ...prev, [filter]: !prev[filter] }));
   };
 
-  const handlePrintLabels = () => {
-    setSnackbar({
-      open: true,
-      message: "Impressão de etiquetas iniciada com sucesso!",
-      severity: "success",
-    });
+  const handleSnackbar = (message, severity = "info") => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleNewOrder = () => {
-    setSnackbar({
-      open: true,
-      message: "Funcionalidade 'Novo pedido' será implementada em breve.",
-      severity: "info",
-    });
-  };
-
-  const handleDocuments = () => {
-    setSnackbar({
-      open: true,
-      message: "Funcionalidade 'Meus Documentos' será implementada em breve.",
-      severity: "info",
-    });
-  };
-
-  const handleReports = () => {
-    setSnackbar({
-      open: true,
-      message: "Funcionalidade 'Meus Relatórios' será implementada em breve.",
-      severity: "info",
-    });
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  // Filtra os pedidos com base nos filtros ativos
   const filteredOrders = orders.filter((order) => {
     if (!filters.pending && !filters.smartEnvios && !filters.readyToShip) return true;
     if (filters.readyToShip && order.status === "Pronto para enviar") return true;
-    // Adicionar lógica para outros filtros (pendência, SmartEnvios) quando houver dados correspondentes
     return false;
   });
 
   return (
     <AppButtonRoot>
       <Box className="breadcrumb">
-        <Breadcrumb
-          routeSegments={[
-            { name: "Ferramentas", path: "/material/labels" },
-            { name: "Imprimir Etiquetas" },
-          ]}
-        />
+        <Breadcrumb routeSegments={[{ name: "Ferramentas", path: "/material/labels" }, { name: "Imprimir Etiquetas" }]} />
       </Box>
 
       <SimpleCard title="Imprimir Etiquetas">
-        {/* Filtros */}
-        <Box mb={2} display="flex" alignItems="center" gap={2}>
+        <StyledSwitchContainer>
           <FormControlLabel
-            control={
-              <Switch
-                checked={filters.pending}
-                onChange={() => handleFilterChange("pending")}
-              />
-            }
-            label="Com pendência"
+            control={<Switch checked={filters.pending} onChange={() => handleFilterChange("pending")} />}
+            label={<Chip label="Com Pendência" color="warning" variant={filters.pending ? "filled" : "outlined"} />}
           />
           <FormControlLabel
-            control={
-              <Switch
-                checked={filters.smartEnvios}
-                onChange={() => handleFilterChange("smartEnvios")}
-              />
-            }
-            label="Serviço SmartEnvios"
+            control={<Switch checked={filters.smartEnvios} onChange={() => handleFilterChange("smartEnvios")} />}
+            label={<Chip label="Serviços SmartEnvios" color="primary" variant={filters.smartEnvios ? "filled" : "outlined"} />}
           />
           <FormControlLabel
-            control={
-              <Switch
-                checked={filters.readyToShip}
-                onChange={() => handleFilterChange("readyToShip")}
-              />
-            }
-            label="Pronto para Enviar"
+            control={<Switch checked={filters.readyToShip} onChange={() => handleFilterChange("readyToShip")} />}
+            label={<Chip label="Pronto para Enviar" color="success" variant={filters.readyToShip ? "filled" : "outlined"} />}
           />
+          <Chip label="Etiquetas Impressas" variant="outlined" />
+        </StyledSwitchContainer>
+
+        <Box mb={2} display="flex" gap={2} flexWrap="wrap">
+          <FilterButton startIcon={<FilterList />}>Filtros</FilterButton>
+          <RoundedButton variant="contained" color="secondary">Novo pedido</RoundedButton>
+          <RoundedButton variant="outlined" color="secondary">Meus Documentos</RoundedButton>
+          <RoundedButton variant="outlined" color="secondary">Meus Relatórios</RoundedButton>
         </Box>
 
-        {/* Botões de Ação */}
-        <Box mb={2} display="flex" gap={2}>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() =>
-              setSnackbar({
-                open: true,
-                message: "Funcionalidade 'Filtros' será implementada em breve.",
-                severity: "info",
-              })
-            }
-          >
-            Filtros
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleNewOrder}>
-            Novo pedido
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={handleDocuments}
-          >
-            Meus Documentos
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={handleReports}
-          >
-            Meus Relatórios
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handlePrintLabels}
-          >
-            Imprimir Etiquetas
-          </Button>
-        </Box>
-
-        {/* Tabela */}
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell></TableCell>
                 <TableCell>Canal</TableCell>
                 <TableCell>Código</TableCell>
                 <TableCell>Transportadora</TableCell>
@@ -278,37 +174,35 @@ export default function PrintLabels() {
             </TableHead>
             <TableBody>
               {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{order.channel}</TableCell>
-                    <TableCell>{order.code}</TableCell>
-                    <TableCell>{order.carrier}</TableCell>
-                    <TableCell>{order.document}</TableCell>
-                    <TableCell>{order.buyer}</TableCell>
-                    <CenteredTableCell>
-                      <Box
-                        sx={{
-                          bgcolor:
-                            order.status === "Pronto para enviar"
-                              ? "success.light"
-                              : "warning.light",
-                          color: "white",
-                          borderRadius: "12px",
-                          padding: "4px 8px",
-                          display: "inline-block",
-                        }}
-                      >
-                        {order.status}
+                filteredOrders.map((order, idx) => (
+                  <TableRow key={idx} hover>
+                    <TableCell><input type="radio" name="select-order" /></TableCell>
+                    <TableCell>
+                      <Box display="flex" alignItems="center">
+                        <ChannelLogo src={order.channel === "Tiny" ? "https://i.imgur.com/6ZCj9jU.png" : "https://i.imgur.com/jnww5g2.png"} alt="canal" />
                       </Box>
-                    </CenteredTableCell>
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{order.code}</Typography>
+                      <Typography variant="caption" color="textSecondary">SM123456789BR</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <img src={order.carrier === "J&T Express" ? "https://i.imgur.com/w5NZRfS.png" : order.carrier === "Loggi" ? "https://i.imgur.com/6wD3XXK.png" : "https://i.imgur.com/Vt4qJRO.png"} alt="transportadora" width={50} />
+                    </TableCell>
+                    <TableCell>{order.document}</TableCell>
+                    <TableCell>
+                      <Typography>{order.buyer}</Typography>
+                      <Typography variant="caption" color="textSecondary">{order.cpf}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={order.status} color="success" icon={<span>✔</span>} />
+                    </TableCell>
                     <TableCell>{order.dateTime}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    Nenhum pedido encontrado.
-                  </TableCell>
+                  <TableCell colSpan={8} align="center">Nenhum pedido encontrado.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -316,15 +210,8 @@ export default function PrintLabels() {
         </TableContainer>
       </SimpleCard>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
+      <Snackbar open={snackbar.open} autoHideDuration={5000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
     </AppButtonRoot>
   );
