@@ -16,8 +16,7 @@ import {
   Chip,
   Typography,
 } from "@mui/material";
-import { FilterList } from "@mui/icons-material";
-import styled from "@mui/material/styles/styled";
+import { styled } from "@mui/material/styles";
 import { Breadcrumb, SimpleCard } from "app/components";
 
 const AppButtonRoot = styled("div")(({ theme }) => ({
@@ -34,24 +33,24 @@ const StyledSwitchContainer = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const FilterButton = styled(Button)(({ theme }) => ({
-  background: "linear-gradient(45deg, #9C27B0, #E040FB)",
-  color: "white",
-  borderRadius: 30,
-  textTransform: "none",
-  padding: "6px 16px",
-  fontWeight: 600,
-  boxShadow: "0 3px 5px 2px rgba(156, 39, 176, .3)",
-}));
-
 const RoundedButton = styled(Button)(({ theme }) => ({
   borderRadius: 30,
   textTransform: "none",
   padding: "6px 20px",
   fontWeight: 600,
+  backgroundColor: theme.palette.primary.main,
+  color: "#fff",
+  "&:hover": {
+    backgroundColor: theme.palette.primary.dark,
+  },
 }));
 
-const ChannelLogo = styled("img")({ width: 24, height: 24, marginRight: 8 });
+const transportIcons = {
+  Sedex: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/631e35eb-bfa5-4b4b-6e3a-6959d997a400/public",
+  PAC: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/afe4e9ac-e065-4d83-3501-8ca777ecf000/public",
+  Mini: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/23ff2cf5-c014-4b0b-d56c-c67db1e0a800/public",
+  JadLog: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/4ff63045-25bb-4e23-8081-9f8c0a7a2c00/100x100",
+};
 
 export default function PrintLabels() {
   const [filters, setFilters] = useState({
@@ -63,9 +62,8 @@ export default function PrintLabels() {
 
   const orders = [
     {
-      channel: "Tiny",
       code: "136018650",
-      carrier: "GFL",
+      carrier: "PAC",
       document: "DC",
       buyer: "Elisangela Cardoso",
       cpf: "707.245.045-91",
@@ -73,9 +71,8 @@ export default function PrintLabels() {
       dateTime: "08/05/25, 21:54",
     },
     {
-      channel: "Tiny",
       code: "136018584",
-      carrier: "J&T Express",
+      carrier: "Sedex",
       document: "DC",
       buyer: "Renata Menezes",
       cpf: "294.530.968-81",
@@ -83,9 +80,8 @@ export default function PrintLabels() {
       dateTime: "08/05/25, 21:54",
     },
     {
-      channel: "Tiny",
       code: "900715559",
-      carrier: "J&T Express",
+      carrier: "Mini",
       document: "DC",
       buyer: "Renata Santos Da Conceicao",
       cpf: "091.013.417-07",
@@ -93,22 +89,11 @@ export default function PrintLabels() {
       dateTime: "08/05/25, 21:53",
     },
     {
-      channel: "Tiny",
       code: "136018204",
-      carrier: "J&T Express",
+      carrier: "JadLog",
       document: "DC",
       buyer: "Karine Fernanda Alves Da Costa",
       cpf: "100.033.869-02",
-      status: "Pronto para enviar",
-      dateTime: "08/05/25, 21:53",
-    },
-    {
-      channel: "Tiny",
-      code: "900715322",
-      carrier: "Loggi",
-      document: "DC",
-      buyer: "Vilma De Souza Penido",
-      cpf: "885.433.906-72",
       status: "Pronto para enviar",
       dateTime: "08/05/25, 21:53",
     },
@@ -116,10 +101,6 @@ export default function PrintLabels() {
 
   const handleFilterChange = (filter) => {
     setFilters((prev) => ({ ...prev, [filter]: !prev[filter] }));
-  };
-
-  const handleSnackbar = (message, severity = "info") => {
-    setSnackbar({ open: true, message, severity });
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -148,14 +129,12 @@ export default function PrintLabels() {
             control={<Switch checked={filters.readyToShip} onChange={() => handleFilterChange("readyToShip")} />}
             label={<Chip label="Pronto para Enviar" color="success" variant={filters.readyToShip ? "filled" : "outlined"} />}
           />
-          <Chip label="Etiquetas Impressas" variant="outlined" />
         </StyledSwitchContainer>
 
         <Box mb={2} display="flex" gap={2} flexWrap="wrap">
-          <FilterButton startIcon={<FilterList />}>Filtros</FilterButton>
-          <RoundedButton variant="contained" color="secondary">Novo pedido</RoundedButton>
-          <RoundedButton variant="outlined" color="secondary">Meus Documentos</RoundedButton>
-          <RoundedButton variant="outlined" color="secondary">Meus Relatórios</RoundedButton>
+          <RoundedButton variant="contained">Novo pedido</RoundedButton>
+          <RoundedButton variant="outlined">Meus Documentos</RoundedButton>
+          <RoundedButton variant="outlined">Meus Relatórios</RoundedButton>
         </Box>
 
         <TableContainer component={Paper}>
@@ -163,7 +142,6 @@ export default function PrintLabels() {
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>
-                <TableCell>Canal</TableCell>
                 <TableCell>Código</TableCell>
                 <TableCell>Transportadora</TableCell>
                 <TableCell>Documento</TableCell>
@@ -176,23 +154,32 @@ export default function PrintLabels() {
               {filteredOrders.length > 0 ? (
                 filteredOrders.map((order, idx) => (
                   <TableRow key={idx} hover>
-                    <TableCell><input type="radio" name="select-order" /></TableCell>
                     <TableCell>
-                      <Box display="flex" alignItems="center">
-                        <ChannelLogo src={order.channel === "Tiny" ? "https://i.imgur.com/6ZCj9jU.png" : "https://i.imgur.com/jnww5g2.png"} alt="canal" />
-                      </Box>
+                      <input type="radio" name="select-order" />
                     </TableCell>
                     <TableCell>
                       <Typography>{order.code}</Typography>
-                      <Typography variant="caption" color="textSecondary">SM123456789BR</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        SM123456789BR
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <img src={order.carrier === "J&T Express" ? "https://i.imgur.com/w5NZRfS.png" : order.carrier === "Loggi" ? "https://i.imgur.com/6wD3XXK.png" : "https://i.imgur.com/Vt4qJRO.png"} alt="transportadora" width={50} />
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <img
+                          src={transportIcons[order.carrier] || "https://i.imgur.com/Vt4qJRO.png"}
+                          alt={order.carrier}
+                          width={40}
+                          height={40}
+                        />
+                        <Typography>{order.carrier}</Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>{order.document}</TableCell>
                     <TableCell>
                       <Typography>{order.buyer}</Typography>
-                      <Typography variant="caption" color="textSecondary">{order.cpf}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {order.cpf}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Chip label={order.status} color="success" icon={<span>✔</span>} />
@@ -202,7 +189,9 @@ export default function PrintLabels() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">Nenhum pedido encontrado.</TableCell>
+                  <TableCell colSpan={7} align="center">
+                    Nenhum pedido encontrado.
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -210,8 +199,15 @@ export default function PrintLabels() {
         </TableContainer>
       </SimpleCard>
 
-      <Snackbar open={snackbar.open} autoHideDuration={5000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>{snackbar.message}</Alert>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
       </Snackbar>
     </AppButtonRoot>
   );

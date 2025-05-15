@@ -1,20 +1,34 @@
 import React, { useState } from "react";
-import Box from "@mui/material/Box";
-import styled from "@mui/material/styles/styled";
-import TextField from "@mui/material/TextField";
-import Switch from "@mui/material/Switch";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import CircularProgress from "@mui/material/CircularProgress";
-import Snackbar from "@mui/material/Snackbar";
+import {
+  Box,
+  Button,
+  TextField,
+  Switch,
+  Typography,
+  InputAdornment,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  Snackbar,
+} from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
+import { styled } from "@mui/material/styles";
 import { Breadcrumb, SimpleCard } from "app/components";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import HistoryIcon from "@mui/icons-material/History";
+import FreightHistory from "./FreightHistory";
+import {
+  getActiveTransportCompanies,
+  getCorreioPacQuote,
+  getCorreioSedexQuote,
+  getCorreioMiniQuote,
+  getJadLogQuote,
+} from "../../../../__api__/service";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -25,14 +39,24 @@ const Container = styled("div")(({ theme }) => ({
   },
 }));
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  fontWeight: "bold",
-  backgroundColor: theme.palette.grey[100],
+const StyledBox = styled(Box)(({ theme }) => ({
+  backgroundColor: "#fff",
+  padding: theme.spacing(3),
+  borderRadius: theme.spacing(2),
+  boxShadow: theme.shadows[2],
+  marginBottom: theme.spacing(3),
 }));
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+const StyledButton = styled(Button)(({ theme }) => ({
+  background: theme.palette.primary.main,
+  color: "#fff",
+  borderRadius: 50,
+  padding: theme.spacing(1, 3),
+  textTransform: "none",
+  fontWeight: 500,
+  fontSize: "0.875rem",
+  "&:hover": {
+    background: theme.palette.primary.dark,
   },
 }));
 
@@ -52,37 +76,14 @@ export default function FreightQuote() {
   });
   const [freightOptions, setFreightOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // Estado para exibir erros específicos
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [openHistory, setOpenHistory] = useState(false);
 
-  // Dados estáticos para simulação (serão substituídos pela API no futuro)
-  const mockFreightOptions = [
-    {
-      provider: "Loggi",
-      rating: 4.50,
-      value: "R$ 10,20",
-      deadline: "4 dias úteis",
-      document: "NF/DC",
-      forecast: "27/03/2025",
-    },
-    {
-      provider: "J&T Express",
-      rating: 3.50,
-      value: "R$ 11,11",
-      deadline: "10 dias úteis",
-      document: "NF/DC",
-      forecast: "04/04/2025",
-    },
-    {
-      provider: "PAC Mini",
-      rating: 4.90,
-      value: "R$ 13,33",
-      deadline: "9 dias úteis",
-      document: "NF/DC",
-      forecast: "03/04/2025",
-    },
-  ];
+  const handleOpenHistory = () => setOpenHistory(true);
+  const handleCloseHistory = () => setOpenHistory(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,35 +97,79 @@ export default function FreightQuote() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setFreightOptions([]); // Limpa a tabela antes de nova simulação
+    setFreightOptions([]);
+    setErrorMessage(""); // Limpar mensagens de erro anteriores
 
     try {
-      // Validação básica
       if (!formData.cepOrigin || !formData.cepDestination) {
         throw new Error("Por favor, preencha os CEPs de origem e destino.");
       }
       if (!formData.weight || !formData.height || !formData.width || !formData.length) {
-        throw new Error("Por favor, preencha todas as dimensões e o peso do pacote.");
+        throw new Error("Preencha todas as dimensões e o peso do pacote.");
       }
 
-      // Simulação estática (substituir por chamada à API no futuro)
-      setTimeout(() => {
-        setFreightOptions(mockFreightOptions);
-        setSnackbarMessage("Cotação realizada com sucesso!");
-        setSnackbarSeverity("success");
-        setOpenSnackbar(true);
-        setLoading(false);
-      }, 1000); // Simula um delay de 1 segundo
+      // Buscar transportadoras ativas
+      const activeCompanies = await getActiveTransportCompanies();
+      const payload = {
+        origin: { zipCode: formData.cepOrigin },
+        destination: { zipCode: formData.cepDestination },
+        packageDetails: {
+          weight: parseFloat(formData.weight),
+          width: parseFloat(formData.width),
+          height: parseFloat(formData.height),
+          length: parseFloat(formData.length),
+        },
+        invoiceValue: parseFloat(formData.value),
+        additionalServices: {
+          own_hand: false,
+          receipt_notice: false,
+          declared_value: true,
+        },
+        user: { id: 1 }, // Substitua pelo ID do usuário real, se necessário
+      };
+
+      const quotes = [];
+
+      // Realizar cotações com base nas transportadoras ativas
+      for (const company of activeCompanies) {
+        try {
+          if (company.nome === "Pac") {
+            const pacQuote = await getCorreioPacQuote(payload);
+            quotes.push({ provider: "Correio - Pac", ...pacQuote });
+          } else if (company.nome === "Sedex") {
+            const sedexQuote = await getCorreioSedexQuote(payload);
+            quotes.push({ provider: "Correio - Sedex", ...sedexQuote });
+          } else if (company.nome === "Mini") {
+            const miniQuote = await getCorreioMiniQuote(payload);
+            quotes.push({ provider: "Correio - Mini", ...miniQuote });
+          } else if (company.nome === "JadLog") {
+            const jadLogQuote = await getJadLogQuote(payload);
+            quotes.push({ provider: "JadLog", ...jadLogQuote });
+          }
+        } catch (quoteError) {
+          console.error(`Erro ao buscar cotação para ${company.nome}:`, quoteError);
+          setErrorMessage(`Erro ao buscar cotação para ${company.nome}: ${quoteError.message}`);
+        }
+      }
+
+      setFreightOptions(quotes);
+      setSnackbarMessage("Cotação realizada com sucesso!");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
     } catch (error) {
       setSnackbarMessage(error.message || "Erro ao realizar a cotação.");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
+  const transportIcons = {
+    "Correio - Pac": "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/afe4e9ac-e065-4d83-3501-8ca777ecf000/public",
+    "Correio - Sedex": "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/631e35eb-bfa5-4b4b-6e3a-6959d997a400/public",
+    "Correio - Mini": "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/23ff2cf5-c014-4b0b-d56c-c67db1e0a800/public",
+    "JadLog": "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/4ff63045-25bb-4e23-8081-9f8c0a7a2c00/100x100",
   };
 
   const handleSelectOption = (provider) => {
@@ -135,209 +180,104 @@ export default function FreightQuote() {
 
   return (
     <Container>
-      <Box className="breadcrumb">
-        <Breadcrumb
-          routeSegments={[
-            { name: "Ferramentas", path: "/material/freight" },
-            { name: "Cotação de Frete" },
-          ]}
-        />
+      <Box display="flex" justifyContent="space-between" alignItems="center" className="breadcrumb">
+        <Breadcrumb routeSegments={[{ name: "Ferramentas", path: "/material/freight" }, { name: "Cotação de Frete" }]} />
+        <StyledButton variant="contained" startIcon={<HistoryIcon />} onClick={handleOpenHistory}>
+          Histórico de cotações
+        </StyledButton>
       </Box>
 
       <SimpleCard title="Simular Fretes">
         <form onSubmit={handleSubmit}>
-          <Box display="flex" flexDirection="column" gap={3}>
-            {/* Empresa e CPF/CNPJ */}
+          <StyledBox>
             <Box display="flex" gap={2}>
-              <TextField
-                label="Sua empresa"
-                variant="outlined"
-                name="company"
-                value={formData.company}
-                onChange={handleChange}
-                fullWidth
-              />
-              <TextField
-                label="CPF / CNPJ do comprador"
-                variant="outlined"
-                name="companyCpfCnpj"
-                value={formData.companyCpfCnpj}
-                onChange={handleChange}
-                fullWidth
-              />
+              <TextField label="Seu CEP *" name="cepOrigin" value={formData.cepOrigin} onChange={handleChange} fullWidth />
+              <Box display="flex" alignItems="center" justifyContent="center">➡️</Box>
+              <TextField label="CEP do comprador *" name="cepDestination" value={formData.cepDestination} onChange={handleChange} fullWidth />
             </Box>
-
-            {/* CEP Origem e Destino */}
-            <Box display="flex" gap={2}>
-              <TextField
-                label="Seu CEP"
-                variant="outlined"
-                name="cepOrigin"
-                value={formData.cepOrigin}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-              <TextField
-                label="CEP do comprador"
-                variant="outlined"
-                name="cepDestination"
-                value={formData.cepDestination}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
+            <Box mt={2} display="flex" alignItems="center">
+              <Switch checked={formData.reverse} onChange={handleSwitchChange} name="reverse" />
+              <Typography variant="body1">Reversa</Typography>
             </Box>
+          </StyledBox>
 
-            {/* Volume #1 */}
-            <Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <h4>Volume #1</h4>
-              </Box>
-
-              <Box display="flex" gap={2}>
-                <TextField
-                  label="Quantidade"
-                  variant="outlined"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  required
-                />
-                <TextField
-                  label="Peso (kg)"
-                  variant="outlined"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  required
-                />
-                <TextField
-                  label="Valor total da nota (R$)"
-                  variant="outlined"
-                  name="value"
-                  value={formData.value}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  step="0.01"
-                />
-              </Box>
-
-              <Box display="flex" gap={2} mt={2}>
-                <TextField
-                  label="Altura (cm)"
-                  variant="outlined"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  required
-                />
-                <TextField
-                  label="Largura (cm)"
-                  variant="outlined"
-                  name="width"
-                  value={formData.width}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  required
-                />
-                <TextField
-                  label="Comprimento (cm)"
-                  variant="outlined"
-                  name="length"
-                  value={formData.length}
-                  onChange={handleChange}
-                  fullWidth
-                  type="number"
-                  required
-                />
-              </Box>
+          <StyledBox>
+            <Typography variant="h6" >Volume #1</Typography>
+            <Box display="flex" gap={2} mt={2}>
+              <TextField label="Quantidade *" name="quantity" type="number" value={formData.quantity} onChange={handleChange} fullWidth />
+              <TextField label="Peso *" name="weight" type="number" value={formData.weight} onChange={handleChange} fullWidth InputProps={{ endAdornment: <InputAdornment position="end">kg</InputAdornment> }} />
+              <TextField label="Valor total da nota *" name="value" type="number" value={formData.value} onChange={handleChange} fullWidth InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
             </Box>
-
-            {/* Switch de Reverso */}
-            <Box display="flex" alignItems="center">
-              <Switch
-                checked={formData.reverse}
-                onChange={handleSwitchChange}
-                name="reverse"
-              />
-              <span>Reversa</span>
+            <Box display="flex" gap={2} mt={2}>
+              <TextField label="Altura *" name="height" type="number" value={formData.height} onChange={handleChange} fullWidth InputProps={{ endAdornment: <InputAdornment position="end">cm</InputAdornment> }} />
+              <TextField label="Largura *" name="width" type="number" value={formData.width} onChange={handleChange} fullWidth InputProps={{ endAdornment: <InputAdornment position="end">cm</InputAdornment> }} />
+              <TextField label="Comprimento *" name="length" type="number" value={formData.length} onChange={handleChange} fullWidth InputProps={{ endAdornment: <InputAdornment position="end">cm</InputAdornment> }} />
             </Box>
+          </StyledBox>
 
-            {/* Botão de Simulação */}
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              disabled={loading}
-              startIcon={loading && <CircularProgress size={20} color="inherit" />}
-            >
-              {loading ? "Simulando..." : "Simular Frete"}
-            </Button>
-
-            {/* Tabela de Opções de Frete */}
-            {freightOptions.length > 0 && (
-              <TableContainer component={Paper} sx={{ mt: 3 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>Provedor</StyledTableCell>
-                      <StyledTableCell>Valor</StyledTableCell>
-                      <StyledTableCell>Prazo</StyledTableCell>
-                      <StyledTableCell>Documento</StyledTableCell>
-                      <StyledTableCell>Previsão</StyledTableCell>
-                      <StyledTableCell>Ação</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {freightOptions.map((option, index) => (
-                      <StyledTableRow key={index}>
-                        <TableCell>
-                          {option.provider} ({option.rating})
-                        </TableCell>
-                        <TableCell>{option.value}</TableCell>
-                        <TableCell>{option.deadline}</TableCell>
-                        <TableCell>{option.document}</TableCell>
-                        <TableCell>{option.forecast}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => handleSelectOption(option.provider)}
-                          >
-                            Selecionar
-                          </Button>
-                        </TableCell>
-                      </StyledTableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+          <Box textAlign="center">
+            <StyledButton variant="contained" type="submit" startIcon={<LocalShippingIcon />} disabled={loading}>
+              {loading ? <CircularProgress size={20} color="inherit" /> : "Realizar cotação"}
+            </StyledButton>
           </Box>
         </form>
+
+        {freightOptions.length > 0 && (
+          <TableContainer component={Paper} sx={{ mt: 4 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Transportadora</TableCell>
+                  <TableCell>Valor</TableCell>
+                  <TableCell>Prazo</TableCell>
+                  <TableCell>Ação</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {freightOptions.map((option, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={2} sx={{ paddingLeft: 2 }}>
+                        <img
+                          src={transportIcons[option.provider] || "https://example.com/icons/default.svg"}
+                          alt={option.provider}
+                          style={{ width: 40, height: 40, borderRadius: "50%" }} // Aumenta o tamanho e arredonda as bordas
+                        />
+                        <Typography>{option.provider}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{option.price}</TableCell>
+                    <TableCell>{option.delivery_time}</TableCell>
+                    <TableCell>
+                      <Button variant="contained" color="primary" onClick={() => handleSelectOption(option.provider)}>
+                        Selecionar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {errorMessage && (
+          <Box mt={4} textAlign="center">
+            <Typography variant="body1" color="error">
+              {errorMessage}
+            </Typography>
+          </Box>
+        )}
       </SimpleCard>
 
-      {/* Snackbar para Feedback */}
+      <FreightHistory open={openHistory} onClose={handleCloseHistory} />
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setOpenSnackbar(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <MuiAlert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
+        <MuiAlert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}
         </MuiAlert>
       </Snackbar>
