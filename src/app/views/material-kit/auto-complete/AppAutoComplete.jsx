@@ -29,6 +29,7 @@ import {
   getCorreioMiniQuote,
   getJadLogQuote,
 } from "../../../../__api__/service";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -81,6 +82,7 @@ export default function FreightQuote() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [openHistory, setOpenHistory] = useState(false);
+  const navigate = useNavigate();
 
   const handleOpenHistory = () => setOpenHistory(true);
   const handleCloseHistory = () => setOpenHistory(false);
@@ -182,7 +184,11 @@ export default function FreightQuote() {
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" className="breadcrumb">
         <Breadcrumb routeSegments={[{ name: "Ferramentas", path: "/material/freight" }, { name: "Cotação de Frete" }]} />
-        <StyledButton variant="contained" startIcon={<HistoryIcon />} onClick={handleOpenHistory}>
+        <StyledButton
+          variant="contained"
+          startIcon={<HistoryIcon />}
+          onClick={() => navigate("/material/table")}
+        >
           Histórico de cotações
         </StyledButton>
       </Box>

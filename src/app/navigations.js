@@ -1,5 +1,5 @@
 const navigations = [
-  { name: "Dashboard", path: "/dashboard/default", icon: "dashboard" },
+  { name: "Minha carteira", path: "/dashboard/default", icon: "dashboard" },
   { label: "Ferramentas", type: "label" },
   {
     name: "Ferramentas",
@@ -7,12 +7,12 @@ const navigations = [
     badge: { value: "3+", color: "secondary" },
     children: [
       { name: "Simular Fretes", path: "/material/customer", iconText: "C" },
+      { name: "Historico", path: "/material/table", iconText: "H" },
       { name: "Imprimir Etiquetas", path: "/material/manage", iconText: "G" },
       { name: "Integrações", path: "/material/progress", iconText: "P" },
       { name: "Transportadoras", path: "/material/radio", iconText: "T" },
       //{ name: "Switch", path: "/material/switch", iconText: "S" },
       //{ name: "Slider", path: "/material/slider", iconText: "S" },
-      //{ name: "Table", path: "/material/table", iconText: "T" }
     ]
   },
 ];
