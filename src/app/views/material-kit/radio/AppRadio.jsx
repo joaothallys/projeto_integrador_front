@@ -2,13 +2,21 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { CircularProgress } from "@mui/material";
 
+// Adicione o objeto de ícones
+const transportIcons = {
+    Sedex: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/631e35eb-bfa5-4b4b-6e3a-6959d997a400/public",
+    Pac: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/afe4e9ac-e065-4d83-3501-8ca777ecf000/public",
+    Mini: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/23ff2cf5-c014-4b0b-d56c-c67db1e0a800/public",
+    JadLog: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/4ff63045-25bb-4e23-8081-9f8c0a7a2c00/100x100",
+    Loggi: 'https://s10.aconvert.com/convert/p3r68-cdx67/ac1bl-drdj9.jpg',
+};
+
 export default function TransportCompanies() {
     const [transportCompanies, setTransportCompanies] = useState([]);
-    const [loading, setLoading] = useState(true); // Estado para controlar o carregamento da página
-    const [error, setError] = useState(null); // Estado para controlar erros
-    const [loadingStatus, setLoadingStatus] = useState(null); // Estado para controlar o carregamento do status individual
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [loadingStatus, setLoadingStatus] = useState(null);
 
-    // Função para buscar as transportadoras da API
     const fetchTransportCompanies = async () => {
         try {
             const response = await axios.get("https://projeto-integrador-g2ah.onrender.com/transportadora/todas");
@@ -21,32 +29,28 @@ export default function TransportCompanies() {
         }
     };
 
-    // Função para alternar o status de uma transportadora
     const toggleActive = async (index) => {
         const updatedCompanies = [...transportCompanies];
         const company = updatedCompanies[index];
         const newStatus = !company.active;
 
-        setLoadingStatus(index); // Ativar o ícone de carregamento para a transportadora específica
+        setLoadingStatus(index);
 
         try {
-            // Atualizar o status na API
             await axios.patch(`https://projeto-integrador-g2ah.onrender.com/transportadora/update/${company.id}`, {
                 active: newStatus,
             });
 
-            // Atualizar o estado local
             updatedCompanies[index].active = newStatus;
             setTransportCompanies(updatedCompanies);
         } catch (err) {
             console.error("Erro ao atualizar status da transportadora:", err);
             alert("Erro ao atualizar o status. Tente novamente mais tarde.");
         } finally {
-            setLoadingStatus(null); // Desativar o ícone de carregamento
+            setLoadingStatus(null);
         }
     };
 
-    // useEffect para carregar os dados ao montar o componente
     useEffect(() => {
         fetchTransportCompanies();
     }, []);
@@ -80,9 +84,17 @@ export default function TransportCompanies() {
                                 justifyContent: "space-between",
                             }}
                         >
-                            {/* Título e Toggle */}
+                            {/* Título, Ícone e Toggle */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <h3 style={{ margin: 0, fontWeight: "bold", fontSize: "18px" }}>{company.nome}</h3>
+                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                    {/* Ícone da transportadora */}
+                                    <img
+                                        src={transportIcons[company.nome] || ""}
+                                        alt={company.nome}
+                                        style={{ width: 40, height: 40, borderRadius: "50%" }}
+                                    />
+                                    <h3 style={{ margin: 0, fontWeight: "bold", fontSize: "18px" }}>{company.nome}</h3>
+                                </div>
                                 <div style={{ display: "flex", alignItems: "center" }}>
                                     <span style={{ marginRight: "10px", fontSize: "14px" }}>
                                         {company.active ? "Ativo" : "Inativo"}

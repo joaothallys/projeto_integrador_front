@@ -110,7 +110,6 @@ export default function FreightQuote() {
         throw new Error("Preencha todas as dimensões e o peso do pacote.");
       }
 
-      // Buscar transportadoras ativas
       const activeCompanies = await getActiveTransportCompanies();
       const payload = {
         origin: { zipCode: formData.cepOrigin },
