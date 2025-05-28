@@ -149,8 +149,11 @@ export default function FreightQuote() {
             quotes.push({ provider: "JadLog", ...jadLogQuote });
           }
         } catch (quoteError) {
-          console.error(`Erro ao buscar cotação para ${company.nome}:`, quoteError);
-          setErrorMessage(`Erro ao buscar cotação para ${company.nome}: ${quoteError.message}`);
+          // Adiciona a cotação com erro à lista
+          quotes.push({
+            provider: company.nome === "Pac" ? "Correio - Pac" : company.nome === "Sedex" ? "Correio - Sedex" : company.nome === "Mini" ? "Correio - Mini" : company.nome,
+            error: quoteError.message || "Erro desconhecido",
+          });
         }
       }
 
@@ -197,9 +200,25 @@ export default function FreightQuote() {
         <form onSubmit={handleSubmit}>
           <StyledBox>
             <Box display="flex" gap={2}>
-              <TextField label="Seu CEP *" name="cepOrigin" value={formData.cepOrigin} onChange={handleChange} fullWidth />
+              <TextField
+                label="Seu CEP *"
+                name="cepOrigin"
+                value={formData.cepOrigin}
+                onChange={handleChange}
+                fullWidth
+                inputProps={{ maxLength: 9, inputMode: "numeric", pattern: "[0-9]{5}-?[0-9]{3}" }}
+                placeholder="00000-000"
+              />
               <Box display="flex" alignItems="center" justifyContent="center">➡️</Box>
-              <TextField label="CEP do comprador *" name="cepDestination" value={formData.cepDestination} onChange={handleChange} fullWidth />
+              <TextField
+                label="CEP do comprador *"
+                name="cepDestination"
+                value={formData.cepDestination}
+                onChange={handleChange}
+                fullWidth
+                inputProps={{ maxLength: 9, inputMode: "numeric", pattern: "[0-9]{5}-?[0-9]{3}" }}
+                placeholder="00000-000"
+              />
             </Box>
             <Box mt={2} display="flex" alignItems="center">
               <Switch checked={formData.reverse} onChange={handleSwitchChange} name="reverse" />
@@ -211,7 +230,15 @@ export default function FreightQuote() {
             <Typography variant="h6" >Volume #1</Typography>
             <Box display="flex" gap={2} mt={2}>
               <TextField label="Quantidade *" name="quantity" type="number" value={formData.quantity} onChange={handleChange} fullWidth />
-              <TextField label="Peso *" name="weight" type="number" value={formData.weight} onChange={handleChange} fullWidth InputProps={{ endAdornment: <InputAdornment position="end">kg</InputAdornment> }} />
+              <TextField
+                label="Peso *"
+                name="weight"
+                type="number"
+                value={formData.weight}
+                onChange={handleChange}
+                fullWidth
+                InputProps={{ endAdornment: <InputAdornment position="end">g</InputAdornment> }}
+              />
               <TextField label="Valor total da nota *" name="value" type="number" value={formData.value} onChange={handleChange} fullWidth InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
             </Box>
             <Box display="flex" gap={2} mt={2}>
@@ -247,15 +274,32 @@ export default function FreightQuote() {
                         <img
                           src={transportIcons[option.provider] || "https://example.com/icons/default.svg"}
                           alt={option.provider}
-                          style={{ width: 40, height: 40, borderRadius: "50%" }} // Aumenta o tamanho e arredonda as bordas
+                          style={{ width: 40, height: 40, borderRadius: "50%" }}
                         />
                         <Typography>{option.provider}</Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{option.price}</TableCell>
-                    <TableCell>{option.delivery_time}</TableCell>
                     <TableCell>
-                      <Button variant="contained" color="primary" onClick={() => handleSelectOption(option.provider)}>
+                      {option.error ? (
+                        <Typography color="error">cotação não disponível</Typography>
+                      ) : (
+                        option.price
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {option.error ? (
+                        <Typography color="error">-</Typography>
+                      ) : (
+                        option.delivery_time
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleSelectOption(option.provider)}
+                        disabled={!!option.error}
+                      >
                         Selecionar
                       </Button>
                     </TableCell>
