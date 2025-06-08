@@ -12,6 +12,10 @@ import {
     Snackbar,
     CircularProgress,
     Typography,
+    MenuItem,
+    Select,
+    InputLabel,
+    FormControl,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import { getAllCotacoes } from "../../../../__api__/service";
@@ -24,6 +28,10 @@ export default function AppTable() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
+    // Novos estados para listas únicas
+    const [carriers, setCarriers] = useState([]);
+    const [services, setServices] = useState([]);
+
     useEffect(() => {
         const fetchCotacoes = async () => {
             setLoading(true);
@@ -31,6 +39,10 @@ export default function AppTable() {
                 const data = await getAllCotacoes();
                 setCotacoes(data);
                 setFilteredCotacoes(data);
+
+                // Gera listas únicas de transportadoras e serviços
+                setCarriers([...new Set(data.map(c => c.carrier).filter(Boolean))]);
+                setServices([...new Set(data.map(c => c.service).filter(Boolean))]);
             } catch (error) {
                 console.error("Erro ao carregar cotações:", error);
                 setSnackbarMessage("Erro ao carregar cotações. Tente novamente mais tarde.");
@@ -44,13 +56,13 @@ export default function AppTable() {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilter({ ...filter, [name]: value });
+        const newFilter = { ...filter, [name]: value };
+        setFilter(newFilter);
 
         const filtered = cotacoes.filter((cotacao) => {
-            return (
-                (name === "carrier" && cotacao.carrier.toLowerCase().includes(value.toLowerCase())) ||
-                (name === "service" && cotacao.service.toLowerCase().includes(value.toLowerCase()))
-            );
+            const carrierMatch = !newFilter.carrier || cotacao.carrier === newFilter.carrier;
+            const serviceMatch = !newFilter.service || cotacao.service === newFilter.service;
+            return carrierMatch && serviceMatch;
         });
         setFilteredCotacoes(filtered);
     };
@@ -63,20 +75,34 @@ export default function AppTable() {
         <Box margin="30px">
             <Typography variant="h5" mb={2}>Histórico de Cotação</Typography>
             <Box display="flex" gap={2} mb={2}>
-                <TextField
-                    label="Transportadora"
-                    name="carrier"
-                    value={filter.carrier}
-                    onChange={handleFilterChange}
-                    fullWidth
-                />
-                <TextField
-                    label="Serviço"
-                    name="service"
-                    value={filter.service}
-                    onChange={handleFilterChange}
-                    fullWidth
-                />
+                <FormControl fullWidth>
+                    <InputLabel>Transportadora</InputLabel>
+                    <Select
+                        label="Transportadora"
+                        name="carrier"
+                        value={filter.carrier}
+                        onChange={handleFilterChange}
+                    >
+                        <MenuItem value="">Todas</MenuItem>
+                        {carriers.map((carrier) => (
+                            <MenuItem key={carrier} value={carrier}>{carrier}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                    <InputLabel>Serviço</InputLabel>
+                    <Select
+                        label="Serviço"
+                        name="service"
+                        value={filter.service}
+                        onChange={handleFilterChange}
+                    >
+                        <MenuItem value="">Todos</MenuItem>
+                        {services.map((service) => (
+                            <MenuItem key={service} value={service}>{service}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </Box>
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" height="200px">
@@ -109,7 +135,7 @@ export default function AppTable() {
                                     <TableCell>R$ {cotacao.price.toFixed(2)}</TableCell>
                                     <TableCell>{cotacao.origin_zipcode}</TableCell>
                                     <TableCell>{cotacao.destination_zipcode}</TableCell>
-                                    <TableCell>{cotacao.user.name}</TableCell>
+                                    <TableCell>{cotacao.user?.name ?? ''}</TableCell>
                                     <TableCell>{new Date(cotacao.createdAt).toLocaleDateString()}</TableCell>
                                 </TableRow>
                             ))}

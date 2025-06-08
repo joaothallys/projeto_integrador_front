@@ -15,6 +15,8 @@ import {
   TableRow,
   CircularProgress,
   Snackbar,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import { styled } from "@mui/material/styles";
@@ -30,6 +32,7 @@ import {
   getJadLogQuote,
 } from "../../../../__api__/service";
 import { useNavigate } from "react-router-dom";
+import { NumericFormat } from 'react-number-format';
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -82,6 +85,7 @@ export default function FreightQuote() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [openHistory, setOpenHistory] = useState(false);
+  const [weightUnit, setWeightUnit] = useState("kg"); // 'g' ou 'kg'
   const navigate = useNavigate();
 
   const handleOpenHistory = () => setOpenHistory(true);
@@ -96,11 +100,32 @@ export default function FreightQuote() {
     setFormData({ ...formData, reverse: e.target.checked });
   };
 
+  const handleWeightUnitChange = (e) => {
+    setWeightUnit(e.target.value);
+  };
+
+  const handleWeightChange = (values) => {
+    setFormData({ ...formData, weight: values.value });
+  };
+
+  const getWeightUnit = () => {
+    const weight = parseFloat(formData.weight.replace(',', '.')) || 0;
+    return weight >= 1000 ? "kg" : "g";
+  };
+
+  const getWeightDisplay = () => {
+    let weight = parseFloat(formData.weight.replace(',', '.')) || 0;
+    if (weight >= 1000) {
+      return (weight / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+    return weight.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setFreightOptions([]);
-    setErrorMessage(""); // Limpar mensagens de erro anteriores
+    setErrorMessage("");
 
     try {
       if (!formData.cepOrigin || !formData.cepDestination) {
@@ -110,12 +135,17 @@ export default function FreightQuote() {
         throw new Error("Preencha todas as dimensões e o peso do pacote.");
       }
 
+      let weight = parseFloat(formData.weight) || 0;
+      if (weightUnit === "kg") {
+        weight = weight * 1000;
+      }
+
       const activeCompanies = await getActiveTransportCompanies();
       const payload = {
-        origin: { zipCode: formData.cepOrigin },
-        destination: { zipCode: formData.cepDestination },
+        origin: { zipCode: formData.cepOrigin.replace("-", "") },
+        destination: { zipCode: formData.cepDestination.replace("-", "") },
         packageDetails: {
-          weight: parseFloat(formData.weight),
+          weight,
           width: parseFloat(formData.width),
           height: parseFloat(formData.height),
           length: parseFloat(formData.length),
@@ -229,14 +259,25 @@ export default function FreightQuote() {
             <Typography variant="h6" >Volume #1</Typography>
             <Box display="flex" gap={2} mt={2}>
               <TextField label="Quantidade *" name="quantity" type="number" value={formData.quantity} onChange={handleChange} fullWidth />
-              <TextField
+              <NumericFormat
+                customInput={TextField}
                 label="Peso *"
                 name="weight"
-                type="number"
                 value={formData.weight}
-                onChange={handleChange}
+                onValueChange={handleWeightChange}
                 fullWidth
-                InputProps={{ endAdornment: <InputAdornment position="end">g</InputAdornment> }}
+                decimalScale={getWeightUnit() === "kg" ? 3 : 0}
+                decimalSeparator=","
+                thousandSeparator="."
+                allowNegative={false}
+                InputProps={{
+                  endAdornment: (
+                    <Typography sx={{ minWidth: 32, ml: 1, color: "#888" }}>
+                      {getWeightUnit()}
+                    </Typography>
+                  ),
+                }}
+                placeholder={getWeightUnit() === "kg" ? "0,000kg" : "0g"}
               />
               <TextField label="Valor total da nota *" name="value" type="number" value={formData.value} onChange={handleChange} fullWidth InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
             </Box>
