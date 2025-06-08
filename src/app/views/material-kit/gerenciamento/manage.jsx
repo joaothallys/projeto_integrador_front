@@ -25,7 +25,6 @@ import { styled } from "@mui/material/styles";
 import { Breadcrumb, SimpleCard } from "app/components";
 import PrintIcon from "@mui/icons-material/Print";
 import CloseIcon from "@mui/icons-material/Close";
-import jsPDF from "jspdf";
 
 const AppButtonRoot = styled("div")(({ theme }) => ({
   margin: "30px",
