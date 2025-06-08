@@ -15,9 +15,17 @@ import {
   Alert,
   Chip,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Breadcrumb, SimpleCard } from "app/components";
+import PrintIcon from "@mui/icons-material/Print";
+import CloseIcon from "@mui/icons-material/Close";
+import jsPDF from "jspdf";
 
 const AppButtonRoot = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -59,6 +67,7 @@ export default function PrintLabels() {
     readyToShip: false,
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [pdfModal, setPdfModal] = useState({ open: false, url: "" });
 
   const orders = [
     {
@@ -109,6 +118,13 @@ export default function PrintLabels() {
     return false;
   });
 
+  const handlePrintLabel = (order) => {
+    const pdfUrl = `https://www.promtec.com.br/wp-content/uploads/2016/10/etiquetas-adesivas-sigep-correios-promtec.jpg?order=${order.code}`;
+    setPdfModal({ open: true, url: pdfUrl });
+  };
+
+  const handleClosePdfModal = () => setPdfModal({ open: false, url: "" });
+
   return (
     <AppButtonRoot>
       <Box className="breadcrumb">
@@ -148,6 +164,7 @@ export default function PrintLabels() {
                 <TableCell>Comprador</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Data / hora</TableCell>
+                <TableCell>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -185,11 +202,22 @@ export default function PrintLabels() {
                       <Chip label={order.status} color="success" icon={<span>✔</span>} />
                     </TableCell>
                     <TableCell>{order.dateTime}</TableCell>
+                    <TableCell>
+                      {order.status === "Pronto para enviar" && (
+                        <IconButton
+                          color="primary"
+                          onClick={() => handlePrintLabel(order)}
+                          title="Imprimir Etiqueta"
+                        >
+                          <PrintIcon />
+                        </IconButton>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     Nenhum pedido encontrado.
                   </TableCell>
                 </TableRow>
@@ -197,6 +225,46 @@ export default function PrintLabels() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Modal para exibir o PDF */}
+        <Dialog open={pdfModal.open} onClose={handleClosePdfModal} maxWidth="md" fullWidth>
+          <DialogTitle>
+            Etiqueta de envio
+            <IconButton
+              aria-label="close"
+              onClick={handleClosePdfModal}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ minHeight: 500 }}>
+            {pdfModal.url && (
+              <iframe
+                src={pdfModal.url}
+                title="Etiqueta PDF"
+                width="100%"
+                height="500px"
+                style={{ border: "none" }}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="primary"
+              component="a"
+              href={pdfModal.url}
+              download="etiqueta.jpg"
+              target="_blank"
+            >
+              Baixar pdf
+            </Button>
+            <Button onClick={handleClosePdfModal} color="secondary">
+              Fechar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </SimpleCard>
 
       <Snackbar

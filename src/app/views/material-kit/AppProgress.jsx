@@ -92,6 +92,11 @@ const marketplaceTexts = {
         urlLabel: 'URL Shopify',
         tokenLabel: 'Token Shopify',
     },
+    'Shoppub': {
+        tutorial: 'A Shoppub é uma Plataforma de E-commerce especializada em regras avançadas de negócio, integrando a sua loja aos melhores player de mercado.',
+        urlLabel: 'URL Shoppub',
+        tokenLabel: 'Token Shoppub',
+    },
 };
 
 const StepCircle = styled('div')(({ theme, active }) => ({
@@ -183,6 +188,12 @@ const Analytics = () => {
             title: 'Shopify',
             description: 'A Plugg.to é uma plataforma de integração de marketplaces e e-commerce que permite aos lojistas expandir suas vendas.',
             logo: 'https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/18b24d36-94c1-49c3-10c4-1bd6d8df1b00/public',
+            active: false,
+        },
+        {
+            title: 'Shoppub',
+            description: 'A Shoppub é uma Plataforma de E-commerce especializada em regras avançadas de negócio, integrando a sua loja aos melhores player de mercado.',
+            logo: 'https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/34abb4ba-7bbf-4ea7-b7bd-6354f20f0500/public',
             active: false,
         },
     ]);

@@ -8,7 +8,7 @@ const transportIcons = {
     Pac: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/afe4e9ac-e065-4d83-3501-8ca777ecf000/public",
     Mini: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/23ff2cf5-c014-4b0b-d56c-c67db1e0a800/public",
     JadLog: "https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/4ff63045-25bb-4e23-8081-9f8c0a7a2c00/100x100",
-    Loggi: 'https://s10.aconvert.com/convert/p3r68-cdx67/ac1bl-drdj9.jpg',
+    Loggi: 'https://imagedelivery.net/KKde8E3p4hSgxYa6DVVQjQ/d5fe83d5-9887-4852-f29b-e3152741d200/public',
 };
 
 export default function TransportCompanies() {
